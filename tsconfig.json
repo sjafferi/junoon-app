@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "target": "es5",
+    "module": "commonjs",
+    "jsx": "react",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitThis": true,
+    "importHelpers": true,
+    "pretty": true,
+    "strict": true,
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "baseUrl": "./src",
+    "paths": {
+      "*": [
+        "./*"
+      ],
+      "ui": [
+        "./components"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*",
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
