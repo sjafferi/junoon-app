@@ -5,7 +5,7 @@ $add-btn-width: 25px;
   display: flex;
   position: absolute;
   z-index: 1;
-  left: -30px;
+  left: -47px;
   top: 0;
 }
 
@@ -25,7 +25,7 @@ $add-btn-width: 25px;
   background: none;
   // border: 1px solid #5b5b5b;
   border: none;
-  color: #6D6D6D;
+  color: #9e9e9ea1;
   cursor: pointer;
   height: $add-btn-width;
   // width: $add-btn-width;
@@ -55,6 +55,8 @@ $add-btn-width: 25px;
     stroke-width: 0;
     fill: #9e9e9ea1;
   }
+
+
 
   .title {
     font-size: 0.55em;

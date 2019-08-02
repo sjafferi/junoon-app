@@ -9,6 +9,8 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 const DEV_MODE = NODE_ENV !== "production";
 const PORT = process.env.PORT || 3001;
 
+const API_HOST = DEV_MODE ? "http://localhost:9010" : "https://api.grubgrab.io"
+
 const FAVICON_DIR = "./src/assets/favicon/favicon.png";
 const TITLE = "Junoon";
 
@@ -67,6 +69,7 @@ module.exports = {
       "assets": path.resolve(__dirname, "src/assets"),
       "consts": path.resolve(__dirname, "src/consts"),
       "editor": path.resolve(__dirname, "src/editor"),
+      "api": path.resolve(__dirname, "src/api"),
     }
   },
   output: {
@@ -84,7 +87,8 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       "process.env.NODE_ENV": JSON.stringify(NODE_ENV),
-      "process.env.PORT": JSON.stringify(PORT)
+      "process.env.PORT": JSON.stringify(PORT),
+      "process.env.API_HOST": JSON.stringify(API_HOST),
     }),
     new CopyWebpackPlugin([{
       from: "./src/assets/css",

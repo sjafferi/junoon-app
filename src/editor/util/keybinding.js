@@ -9,6 +9,9 @@ Emits various key commands to be used by `handleKeyCommand` in `Editor` based
 on various key combos.
 */
 export default (e) => {
+  if (e.keyCode === 83 /* `S` key */ && KeyBindingUtil.hasCommandModifier(e)) {
+    return 'save-editor';
+  }
   if (KeyBindingUtil.hasCommandModifier(e) && e.which === 75) {
     if (e.shiftKey) {
       return unlink();

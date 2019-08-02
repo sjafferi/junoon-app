@@ -6,40 +6,67 @@
   padding: 15px 30px;
   position: relative;
   line-height: 1.4em;
-  position: relative;
+}
+
+.md-RichEditor-editor {
+  width: 100%;
+  height: 100%;
+  > div {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .react-draggable-dragging {
   pointer-events: none;
 }
 
-.md-block > div {
-  transition: padding 100ms ease-in-out;
+.md-block {
+  // transition: padding 100ms ease-in-out;
+  // transition: border 100ms ease-in-out;
 }
 
 .dragging .row {
   overflow-y: visible !important;
 }
 
-.dragging .md-block:not(.dragging) > div:hover {
-  padding-top: 25px;
-  padding-bottom: 25px;
-  position: relative;
-
-  &:before {
-    position: absolute;
-    display: block;
-    content: '';
-    width: 100%;
-    height: calc(100% - 50px);
-    background-color: #E2F2FF;
-    top: 0%;
-    border: 1px solid black;
-  }
+.md-block {
+  // &:before {
+  //   position: absolute;
+  //   display: block;
+  //   content: '';
+  //   width: 0;
+  //   height: 10px;
+  //   // height: calc(100% - 50px);
+  //   top: -50%;
+  //   // background-color: #E2F2FF;
+  //   border-bottom: 1px solid rebeccapurple;
+  //   transition: width 150ms ease-in-out;
+  // }
 }
 
-.dragging .md-block.dragging {
-  // position: absolute;
+.dragging .md-block:not(.dragging):hover {
+  position: relative;
+  border-bottom: 1px solid black;
+  // padding-top: 25px;
+  // padding-bottom: 25px;
+  // &:before {
+  //   width: 100%;
+  // }
+}
+
+.md-block:hover .drag-handle,
+.dragging .md-block.dragging .drag-handle,
+.dragging .md-block.dragging .drag-handle {
+  opacity: 1;
+}
+
+body.dragging * {
+  cursor: grab;
+}
+
+.dragging .editor-block:hover {
+  border: 1px solid black;
 }
 
 .md-RichEditor-editor {

@@ -11,7 +11,6 @@ import {
 } from 'draft-js';
 import * as isSoftNewlineEvent from 'draft-js/lib/isSoftNewlineEvent';
 import { OrderedMap } from 'immutable';
-
 import AddButton from './components/addbutton';
 import Toolbar, { BLOCK_BUTTONS, INLINE_BUTTONS } from './components/toolbar';
 import LinkEditComponent from './components/LinkEditComponent';
@@ -27,7 +26,8 @@ import {
   Entity as E,
   HANDLED,
   NOT_HANDLED,
-  KEY_COMMANDS } from './util/constants';
+  KEY_COMMANDS
+} from './util/constants';
 import beforeInput, { StringToTypeMap } from './util/beforeinput';
 import blockStyleFn from './util/blockStyleFn';
 import {
@@ -146,7 +146,7 @@ class MediumDraftEditor extends React.Component {
     this.setLink = this.setLink.bind(this);
     this.blockRendererFn = this.props.rendererFn(this.onChange, this.getEditorState, this.props);
 
-    this.addSnippet(Snippets.DEFAULT);
+    if (props.addDefaultSnippet) this.addSnippet(Snippets.DEFAULT);
   }
 
   addSnippet = (snippet) => {
@@ -195,25 +195,25 @@ class MediumDraftEditor extends React.Component {
     const currentBlock = content.getBlockForKey(key);
     const firstBlock = content.getFirstBlock();
     if (firstBlock.getKey() === key) {
-      if (firstBlock.getType().indexOf(Block.ATOMIC) === 0) {
-        e.preventDefault();
-        const newBlock = new ContentBlock({
-          type: Block.UNSTYLED,
-          key: genKey(),
-        });
-        const newBlockMap = OrderedMap([[newBlock.getKey(), newBlock]]).concat(content.getBlockMap());
-        const newContent = content.merge({
-          blockMap: newBlockMap,
-          selectionAfter: selection.merge({
-            anchorKey: newBlock.getKey(),
-            focusKey: newBlock.getKey(),
-            anchorOffset: 0,
-            focusOffset: 0,
-            isBackward: false,
-          }),
-        });
-        this.onChange(EditorState.push(editorState, newContent, 'insert-characters'));
-      }
+      // if (firstBlock.getType().indexOf(Block.ATOMIC) === 0) {
+      //   e.preventDefault();
+      //   const newBlock = new ContentBlock({
+      //     type: Block.UNSTYLED,
+      //     key: genKey(),
+      //   });
+      //   const newBlockMap = OrderedMap([[newBlock.getKey(), newBlock]]).concat(content.getBlockMap());
+      //   const newContent = content.merge({
+      //     blockMap: newBlockMap,
+      //     selectionAfter: selection.merge({
+      //       anchorKey: newBlock.getKey(),
+      //       focusKey: newBlock.getKey(),
+      //       anchorOffset: 0,
+      //       focusOffset: 0,
+      //       isBackward: false,
+      //     }),
+      //   });
+      //   this.onChange(EditorState.push(editorState, newContent, 'insert-characters'));
+      // }
     } else {
       const blockBefore = content.getBlockBefore(key);
       if (!blockBefore) {
@@ -314,6 +314,10 @@ class MediumDraftEditor extends React.Component {
       if (behaviour === HANDLED || behaviour === true) {
         return HANDLED;
       }
+    }
+    if (command === KEY_COMMANDS.saveEditor()) {
+      this.props.onSave();
+      return HANDLED;
     }
     if (command === KEY_COMMANDS.showLinkInput()) {
       if (!this.props.disableToolbar && this.toolbar) {
@@ -422,8 +426,8 @@ class MediumDraftEditor extends React.Component {
           case Block.H2:
           case Block.H3:
           case Block.H1:
-            // this.onChange(resetBlockWithType(editorState, Block.UNSTYLED));
-            // return HANDLED;
+          // this.onChange(resetBlockWithType(editorState, Block.UNSTYLED));
+          // return HANDLED;
           default:
             return NOT_HANDLED;
         }
@@ -556,7 +560,7 @@ class MediumDraftEditor extends React.Component {
   */
   render() {
     const { editorState, editorEnabled, disableToolbar, showLinkEditToolbar, toolbarConfig, id } = this.props;
-    const showAddButton = editorEnabled;
+    const showAddButton = false // editorEnabled;
     const editorClass = `md-RichEditor-editor${!editorEnabled ? ' md-RichEditor-readonly' : ''}`;
     let isCursorLink = false;
     if (editorEnabled && showLinkEditToolbar) {

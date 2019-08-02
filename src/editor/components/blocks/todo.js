@@ -5,6 +5,8 @@ import { EditorBlock } from 'draft-js';
 
 import { updateDataOfBlock } from '../../model/';
 
+const SCALE = 25;
+
 export default class TodoBlock extends React.Component {
 
   updateData = () => {
@@ -25,17 +27,20 @@ export default class TodoBlock extends React.Component {
     const textLength = this.props.block.getLength();
     const checked = data.get('checked') === true;
     const placeholder = textLength === 0 && data.get('placeholder');
-    
+
     return (
       <Draggable
-        handle=".md-block-todo"
+        handle=".drag-handle"
         onStart={handleDragStart}
         onDrag={handleDrag}
         onStop={handleDragEnd}
       >
-        <div className="md-block-todo control control--checkbox" style={{ marginLeft: `${depth * 1.5}em`}}>
+        <div className="md-block-todo control control--checkbox" style={{ marginLeft: `${depth * 1.5}em` }}>
+          <button className="drag-handle">
+            <i className="fa fa-bars"></i>
+          </button>
           {placeholder && <span className="placeholder">{placeholder}</span>}
-          <input id={`input-${key}`} type="checkbox" checked={checked} onChange={this.updateData}/>
+          <input id={`input-${key}`} type="checkbox" checked={checked} onChange={this.updateData} />
           <label htmlFor={`input-${key}`} className="control__indicator" />
           <EditorBlock {...this.props} />
         </div>

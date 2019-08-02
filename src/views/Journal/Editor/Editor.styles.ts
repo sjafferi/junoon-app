@@ -8,7 +8,7 @@ export const Container = styled.div`
   font-size: 12px;
 
   .md-block {
-    font-size: 16px;
+    font-size: 12px;
     line-height: 1.6;
     color: #333;
     padding-top: 3px;
@@ -39,7 +39,7 @@ export const Container = styled.div`
   
   span.placeholder {
     position: absolute;
-    color: #9E9E9E;
+    color: ${Colors.darkLightGrey};
     cursor: default;
     user-select: none;
     -webkit-user-select: none;

@@ -1,51 +1,102 @@
-import { action, observable } from 'mobx';
-import { assign, range, isElement } from 'lodash';
+import { action, observable, computed } from 'mobx';
+import { assign, debounce, entries, range, isElement, pick } from 'lodash';
 import * as moment from 'moment';
 import {
-  EditorState, genKey
+  EditorState, genKey, convertToRaw, convertFromRaw
 } from 'draft-js';
-import { Block } from "editor/util/constants"
-import { addNewBlockAt, resetBlockAt } from "editor/model"
+import { Snippets } from "editor/util/constants"
+import { addNewBlockAt, removeBlockAt } from "editor/model"
+import { addSnippet, isOverlapping, getBlockKey, containsPoint } from "./util";
+import { fetchEntries, updateEntries } from "api"
 
 export type DragHandler = (block: HTMLElement, x: number, y: number) => void;
 
-function getBlockKey(block: Element) {
-  return (block.getAttribute('data-offset-key') || '').split('-')[0];
-}
-
-function getElementBounds(el: Element) {
-  var rect = el.getBoundingClientRect(),
-  scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
-  scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  return { top: rect.top + scrollTop, left: rect.left + scrollLeft, width: rect.width, height: rect.height }
-}
-
-function isOverlapping(d2: Element, d3: HTMLElement, x: number, y: number) {
-  const d0 = getElementBounds(d2), d1 = getElementBounds(d3),
-    x11 = d0.left,
-    y11 = d0.top,
-    x12 = d0.left + d0.width,
-    y12 = d0.top + d0.height,
-    x21 = x,
-    y21 = y,
-    x22 = x + d1.width,
-    y22 = y + d1.height,
-
-    x_overlap = Math.max(0, Math.min(x12,x22) - Math.max(x11,x21)),
-    y_overlap = Math.max(0, Math.min(y12,y22) - Math.max(y11,y21));
-
-  return x_overlap * y_overlap >= d1.width / 2;
+export interface IEntry {
+  id?: string,
+  date?: number,
+  content: string,
 }
 
 export default class JournalState {
   @observable public entries: { [key: string]: EditorState } = {};
+  @observable public selectedWeek: moment.Moment = moment();
+  public entityMap: { [key: number]: { id: string } } = {};
 
-  constructor() {
-    const startOfWeek = moment().startOf('week');
+  public lockedCalls: { [key: string]: boolean } = {};
+
+  saveMany = async (ids: string[]) => {
+    const payload = entries(pick(this.entries, ids)).map(([id, editorState]) => ({ id, content: JSON.stringify(convertToRaw(editorState.getCurrentContent())) }));
+    const response = await updateEntries(payload);
+    return response;
+  }
+
+  @computed
+  get entriesForWeek() {
+    const startOfWeek = this.selectedWeek.clone().startOf('isoWeek').startOf('day');
+    const endOfWeek = this.selectedWeek.clone().endOf('isoWeek');
+    const ids: string[] = [];
+    if (!this.entityMap[startOfWeek.unix()]) {
+      const fetchWeek = this.debouncedFetchWeek(startOfWeek.unix());
+      if (fetchWeek) fetchWeek(this.selectedWeek);
+      return pick(this.entries, ids);
+    }
+    const { id } = this.entityMap[startOfWeek.unix()];
+    ids.push(id);
+    while (startOfWeek.add(1, 'days').diff(endOfWeek) <= 0) {
+      const { id } = this.entityMap[startOfWeek.unix()];
+      ids.push(id);
+    }
+    return pick(this.entries, ids);
+  }
+
+  @action
+  fetchWeek = async (day: moment.Moment = moment()) => {
+    const startOfWeek = day.clone().startOf('isoWeek').unix();
+    const endOfWeek = day.clone().endOf('isoWeek').unix();
+    let entries;
+    try {
+      entries = await fetchEntries(startOfWeek, endOfWeek);
+      console.log("Fetching week: ", day.toString());
+    } catch (e) {
+
+    }
+
+    if (entries && !entries.error) {
+      entries = entries.reduce((acc: { [key: string]: EditorState }, { id, date, content }: IEntry) => {
+        let editorState = content ? EditorState.createWithContent(convertFromRaw(JSON.parse(content))) : EditorState.createEmpty();
+        if (!content) {
+          const snippet = Snippets.DEFAULT;
+          const formattedDate = moment(date);
+          snippet[0] = { ...snippet[0], placeholder: formattedDate.format("ddd D") };
+          editorState = addSnippet(Snippets.DEFAULT, editorState);
+        }
+        acc[id!] = editorState;
+        this.entityMap[moment(date).startOf('day').unix()] = { id: id! };
+        return acc;
+      }, {});
+
+      this.assign({ entries: { ...this.entries, ...entries } });
+    }
+
+    return entries;
+  }
+
+  debouncedFetchWeek = (key: string | number, timeout: number = 5000) => {
+    if (this.lockedCalls[key]) return;
+    this.lockedCalls[key] = true;
+    setTimeout(() => this.lockedCalls[key] = false, timeout);
+    return debounce(this.fetchWeek, timeout, { leading: true, trailing: false });
+  }
+
+  generateEntries = () => {
+    const startOfWeek = moment().startOf('isoWeek');
     this.entries = range(6).reduce((acc: { [key: string]: EditorState }) => {
-      const editorState = EditorState.createEmpty();
+      const date = startOfWeek.add(1, 'days');
+      let editorState = EditorState.createEmpty();
+      const snippet = Snippets.DEFAULT;
+      snippet[0] = { ...snippet[0], placeholder: date.format("ddd D") };
+      editorState = addSnippet(Snippets.DEFAULT, editorState);
       acc[genKey()] = editorState;
-      // startOfWeek.add(1, 'days')
       return acc;
     }, {});
   }
@@ -73,19 +124,30 @@ export default class JournalState {
       }
       if (editor) {
         const blocks = editor.querySelectorAll('.md-block');
+        const currBlockKey = getBlockKey(block.parentElement!);
+        const targetEditorId = editor.getAttribute("id")!;
+        const content = this.entries[currEditorId].getCurrentContent();
+        const contentState = this.entries[targetEditorId].getCurrentContent();
+        const blockMap = content.getBlockMap();
+        const currBlock = blockMap.get(currBlockKey);
         for (let index in blocks) {
-          if (isElement(blocks[index]) && isElement(block) && isOverlapping(blocks[index], block, x, y)) {
-            const newBlockAt = blocks[index];
-            const currBlockKey = getBlockKey(block.parentElement!);
-            const targetBlockKey = getBlockKey(newBlockAt);
-            const targetEditorId = editor.getAttribute("id")!;
-            const content = this.entries[currEditorId].getCurrentContent();
-            const blockMap = content.getBlockMap();
-            const currBlock = blockMap.get(currBlockKey);
+          if (isElement(blocks[index]) && isElement(block) && containsPoint(blocks[index], x, y)) {
+            const targetBlock = blocks[index];
+            const targetBlockAfterKey = getBlockKey(targetBlock);
+            const targetBlockKey = contentState.getKeyBefore(targetBlockAfterKey) || contentState.getFirstBlock().getKey();
+            if (targetBlockAfterKey !== null && !targetBlockKey) continue;
             this.entries[targetEditorId] = addNewBlockAt(this.entries[targetEditorId], targetBlockKey, currBlock.getType(), currBlock.getData(), currBlock.getText(), currBlock.getDepth());
-            this.entries[currEditorId] = resetBlockAt(this.entries[currEditorId], currBlockKey);
+            this.entries[currEditorId] = removeBlockAt(this.entries[currEditorId], currBlockKey);
             success = true;
             break;
+          }
+        }
+        if (!success) {
+          if (targetEditorId !== currEditorId) {
+            const targetBlock = contentState.getLastBlock();
+            const targetBlockKey = targetBlock.getKey();
+            this.entries[targetEditorId] = addNewBlockAt(this.entries[targetEditorId], targetBlockKey, currBlock.getType(), currBlock.getData(), currBlock.getText(), currBlock.getDepth());
+            this.entries[currEditorId] = removeBlockAt(this.entries[currEditorId], currBlockKey);
           }
         }
       }

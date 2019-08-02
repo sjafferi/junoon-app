@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as moment from 'moment';
-import { 
+import {
   EditorState
 } from 'draft-js';
 import { Container, Date } from "./Editor.styles";
@@ -13,9 +13,10 @@ interface IEditorState {
 
 interface IEditorProps {
   id: string;
-  dragHandlers?: { start: DragHandler, move: DragHandler, end: DragHandler}
+  dragHandlers?: { start: DragHandler, move: DragHandler, end: DragHandler }
   editorState: EditorState;
   onChange: (editorState: EditorState, callback: () => void) => void
+  onSave: (id: string) => void
 }
 
 export default class Editor extends React.Component<IEditorProps, IEditorState> {
@@ -25,22 +26,26 @@ export default class Editor extends React.Component<IEditorProps, IEditorState> 
 
   state = { dragging: false };
 
-  onDragStart = (e: MouseEvent, data: { node: HTMLElement}) => {
+  onDragStart = (e: MouseEvent, data: { node: HTMLElement }) => {
     this.setState({ dragging: true });
     if (this.props.dragHandlers) {
       this.props.dragHandlers.start(data.node, e.x, e.y);
     }
   }
-  
-  onDrag = (e: MouseEvent, data: { node: HTMLElement}) => {
+
+  onDrag = (e: MouseEvent, data: { node: HTMLElement }) => {
 
   };
 
-  onDragEnd = (e: MouseEvent, data: { node: HTMLElement}) => {
+  onDragEnd = (e: MouseEvent, data: { node: HTMLElement }) => {
     this.setState({ dragging: false });
     if (this.props.dragHandlers) {
       this.props.dragHandlers.end(data.node, e.x, e.y);
     }
+  }
+
+  onSave = () => {
+    this.props.onSave(this.props.id);
   }
 
   render() {
@@ -48,6 +53,7 @@ export default class Editor extends React.Component<IEditorProps, IEditorState> 
       <Container>
         <MediumEditor
           id={this.props.id}
+          onSave={this.onSave}
           handleDragStart={this.onDragStart}
           handleDrag={this.onDrag}
           handleDragEnd={this.onDragEnd}

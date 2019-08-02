@@ -1,6 +1,6 @@
 import { Map, List } from 'immutable';
 
-import { EditorState, ContentBlock, genKey } from 'draft-js';
+import { EditorState, ContentBlock, genKey, Modifier } from 'draft-js';
 import { Block, Entity } from '../util/constants';
 
 
@@ -98,6 +98,17 @@ export const resetBlockAt = (editorState, key, newType = Block.UNSTYLED) => {
   return EditorState.push(editorState, newContentState, 'change-block-type');
 };
 
+export function removeBlockAt(editorState, blockKey) {
+  var contentState = editorState.getCurrentContent();
+  var blockMap = contentState.getBlockMap();
+  var newBlockMap = blockMap.remove(blockKey)
+  var newContentState = contentState.merge({
+    blockMap: newBlockMap
+  });
+  var newEditorState = EditorState.push(editorState, newContentState, 'remove-range')
+  return newEditorState
+}
+
 
 /*
 Update block-level metadata of the given `block` to the `newData`/
@@ -131,6 +142,7 @@ export const addNewBlockAt = (
   const content = editorState.getCurrentContent();
   const blockMap = content.getBlockMap();
   const block = blockMap.get(pivotBlockKey);
+  console.log("PIVOT BLOCK KEY:", pivotBlockKey);
   if (!block) {
     throw new Error(`The pivot key - ${pivotBlockKey} is not present in blockMap.`);
   }
@@ -146,6 +158,7 @@ export const addNewBlockAt = (
     // characterList: List(),
     data: Map(getDefaultBlockData(newBlockType, initialData)),
   });
+
 
   const newBlockMap = blocksBefore.concat(
     [[pivotBlockKey, block], [newBlockKey, newBlock]],

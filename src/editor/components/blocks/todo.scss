@@ -1,4 +1,15 @@
 .md-block-todo {
+    .drag-handle {
+        position: absolute;
+        color: #9e9e9ea1;
+        top: 5px;
+        left: -30px;
+        border: none;
+        opacity: 0;
+        cursor: grab;
+        transition: opacity 100ms ease-in-out;
+    }
+
     input[type=checkbox] {
         cursor: pointer;
         float: left;

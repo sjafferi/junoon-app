@@ -35,6 +35,9 @@ export default class AddButton extends React.Component {
     const { editorState, escape } = newProps;
     const contentState = editorState.getCurrentContent();
     const selectionState = editorState.getSelection();
+
+    // add show drag handler logic here
+
     if (escape !== this.props.escape) {
       this.hideBlock();
       return;
@@ -42,11 +45,12 @@ export default class AddButton extends React.Component {
     if (!selectionState.hasFocus) {
       return;
     }
-    if (!selectionState.isCollapsed() || selectionState.anchorKey !== selectionState.focusKey || contentState.getBlockForKey(selectionState.getAnchorKey()).getType().indexOf('atomic') >= 0) {
+    const blockKey = contentState.getBlockForKey(selectionState.getAnchorKey());
+    const block = contentState.getBlockForKey(selectionState.anchorKey);
+    if (!selectionState.isCollapsed() || selectionState.anchorKey !== selectionState.focusKey || !blockKey || !block || blockKey.getType().indexOf('atomic') >= 0) {
       this.hideBlock();
       return;
     }
-    const block = contentState.getBlockForKey(selectionState.anchorKey);
     const bkey = block.getKey();
     if (block.getLength() > 0) {
       this.hideBlock();
@@ -102,7 +106,7 @@ export default class AddButton extends React.Component {
         visible: false,
         isOpen: false,
       });
-      this.setState({ buttonContainerStyle: { opacity: 0 }});
+      this.setState({ buttonContainerStyle: { opacity: 0 } });
     }
   }
 
@@ -110,7 +114,7 @@ export default class AddButton extends React.Component {
     this.setState({
       isOpen: !this.state.isOpen,
     }, () => { // callback function
-      this.setState({ buttonContainerStyle: { opacity: 1 }});
+      this.setState({ buttonContainerStyle: { opacity: 1 } });
       // save page state
       const x = window.scrollX;
       const y = window.scrollY;
