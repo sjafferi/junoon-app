@@ -34,13 +34,14 @@ export default class JournalState {
   get entriesForWeek() {
     const startOfWeek = this.selectedWeek.clone().startOf('isoWeek').startOf('day');
     const endOfWeek = this.selectedWeek.clone().endOf('isoWeek');
+    const key = startOfWeek.unix();
     const ids: string[] = [];
-    if (!this.entityMap[startOfWeek.unix()]) {
-      const fetchWeek = this.debouncedFetchWeek(startOfWeek.unix());
+    if (!this.entityMap[key]) {
+      const fetchWeek = this.debouncedFetchWeek(key);
       if (fetchWeek) fetchWeek(this.selectedWeek);
       return pick(this.entries, ids);
     }
-    const { id } = this.entityMap[startOfWeek.unix()];
+    const { id } = this.entityMap[key];
     ids.push(id);
     while (startOfWeek.add(1, 'days').diff(endOfWeek) <= 0) {
       const { id } = this.entityMap[startOfWeek.unix()];

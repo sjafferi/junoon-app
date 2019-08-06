@@ -23,7 +23,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  width: 100vw;
+  width: 90.5vw;
   height: 100vh;
   background: #ffefef;
 `;
