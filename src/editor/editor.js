@@ -109,7 +109,6 @@ class MediumDraftEditor extends React.Component {
     blockRenderMap: RenderMap,
     blockButtons: BLOCK_BUTTONS,
     inlineButtons: INLINE_BUTTONS,
-    placeholder: 'Write your story...',
     imageCaptionPlaceholder: 'Add image caption...',
     continuousBlocks: [
       Block.UNSTYLED,

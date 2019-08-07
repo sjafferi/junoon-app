@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as moment from 'moment';
 import styled from 'styled-components';
+import { Resizable, ResizeCallback, ResizeStartCallback } from "re-resizable";
 import { inject, observer } from "mobx-react";
 import { Viewport } from 'stores';
 import { Colors } from 'consts';
@@ -13,6 +14,7 @@ import "flexboxgrid/dist/flexboxgrid.min.css";
 
 interface IWeeklyState {
   showSunday: boolean;
+  rowHeight: number;
 }
 
 interface IWeeklyProps {
@@ -32,16 +34,24 @@ const Container = styled.div`
 
 const Row: any = styled.div`
   flex-grow: 1 !important;
-  height: 100%;
-  max-height: ${(props: any) => props.maxHeight}px;
+  width: ${(props: any) => props.width}px;
+  height: ${(props: any) => props.height}px;
+  overflow-y: hidden;
+`;
+
+const ResizableRow = styled(Resizable)`
+  flex-grow: 1 !important;
+
+  transition: height 1ms;
   overflow-y: hidden;
 `;
 
 const Column: any = styled.div`
   position: relative;
   flex-grow: 1;
+  height: 100%;
   border: 1px solid ${Colors.lightGrey};
-  max-width: ${(props: any) => props.maxWidth}px;
+  width: ${(props: any) => props.width}px;
 `;
 
 const ActionsContainer = styled.div`
@@ -73,7 +83,7 @@ interface IAction {
 }
 
 const Action: React.SFC<IAction> = ({ title, icon, onClick }) => (
-  <ActionContainer onClick={onClick}>
+  <ActionContainer className="noselect" onClick={onClick}>
     <i className={`fa ${icon}`} />
     {title}
   </ActionContainer>
@@ -83,18 +93,21 @@ const Action: React.SFC<IAction> = ({ title, icon, onClick }) => (
 @observer
 export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> {
   state = {
-    showSunday: false
+    showSunday: false,
+    rowHeight: this.rowHeight
   };
+
+  originalHeight = this.rowHeight;
 
   get viewport() {
     return this.props.viewport!;
   }
 
-  get maxWidth() {
-    return this.viewport.width / 3;
+  get columnWidth() {
+    return (this.viewport.width * 0.9) / 3;
   }
 
-  get maxHeight() {
+  get rowHeight() {
     return (window.innerHeight - 50) / 2;
   }
 
@@ -104,6 +117,17 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
 
   get start() {
     return moment(this.props.start, "MMMD");
+  }
+
+  handleResizeStart: ResizeStartCallback = (e: any, direction, ref) => {
+    this.originalHeight = e.clientY;
+  }
+
+  handleResizeStop: ResizeCallback = (e: any, direction, ref, d) => {
+    const diff = this.originalHeight - e.clientY;
+    this.setState({
+      rowHeight: this.state.rowHeight - diff,
+    });
   }
 
   toggleShowSunday = () => this.setState({ showSunday: !this.state.showSunday })
@@ -124,14 +148,14 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     this.props.state.saveMany(this.keys);
   }
 
-  renderEntries = (start: number, end: number, numColumns = 4, style = {}) => {
-    const maxWidth = this.maxWidth / (numColumns / 4);
+  renderEntries = (start: number, end: number, numColumns = 4, ) => {
+    const width = this.columnWidth / (numColumns / 4);
 
     return this.keys.map((key, index) => ({ key, index })).filter((key, index) => index >= start && index < end).map(({ key, index }) => {
       const actions = this.getActionsForEntry(index);
       return (
-        <Column className={`col-sm-${numColumns} col-md-${numColumns} col-lg-${numColumns} editor-block`} key={key} maxWidth={maxWidth} style={style}>
-          {actions.length ? <ActionsContainer> {actions.map((...props) => <Action {...(props[0])} />)} </ActionsContainer> : null}
+        <Column className={`col-sm-${numColumns} col-md-${numColumns} col-lg-${numColumns} editor-block`} key={key} width={width}>
+          {actions.length ? <ActionsContainer> {actions.map((...props) => <Action key={props[1]} {...(props[0])} />)} </ActionsContainer> : null}
           <Editor
             id={key}
             onSave={this.onSave}
@@ -145,14 +169,20 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   render() {
-    const maxHeight = this.maxHeight;
+    const width = this.columnWidth * 3.05;
     return (
       <Container>
         <Header start={this.start} />
-        <Row className="row" maxHeight={maxHeight}>
+        <ResizableRow
+          className="row resizable"
+          size={{ width, height: this.state.rowHeight }}
+          enable={{ bottom: true }}
+          onResizeStart={this.handleResizeStart}
+          onResizeStop={this.handleResizeStop}
+        >
           {this.renderEntries(0, 3)}
-        </Row>
-        <Row className="row" maxHeight={maxHeight}>
+        </ResizableRow>
+        <Row className="row" width={width} height={this.rowHeight}>
           {this.renderEntries(3, 5)}
           {!this.state.showSunday && this.renderEntries(5, 6)}
           {this.state.showSunday && this.renderEntries(6, 7)}
