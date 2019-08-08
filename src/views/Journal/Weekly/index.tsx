@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as moment from 'moment';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { Resizable, ResizeCallback, ResizeStartCallback } from "re-resizable";
 import { inject, observer } from "mobx-react";
 import { Viewport } from 'stores';
@@ -15,6 +15,7 @@ import "flexboxgrid/dist/flexboxgrid.min.css";
 interface IWeeklyState {
   showSunday: boolean;
   rowHeight: number;
+  resizableRowHeight: number;
 }
 
 interface IWeeklyProps {
@@ -32,24 +33,41 @@ const Container = styled.div`
   background: white;
 `;
 
-const Row: any = styled.div`
+const RowStyles = css`
   flex-grow: 1 !important;
+  overflow-y: scroll;
+  &::-webkit-scrollbar {
+    width: 2px;
+    background-color: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: ${Colors.lighterGrey};
+  }
+`
+
+const Row: any = styled.div`
+  ${RowStyles}
   width: ${(props: any) => props.width}px;
   height: ${(props: any) => props.height}px;
-  overflow-y: hidden;
 `;
 
-const ResizableRow = styled(Resizable)`
-  flex-grow: 1 !important;
+const ResizableRow: any = styled(Resizable)`
+  ${RowStyles}
+  position: static !important;
 
-  transition: height 1ms;
-  overflow-y: hidden;
+  > span > div {
+    top: ${(props: any) => props.height + 49}px;
+    bottom: none;
+  }
 `;
 
 const Column: any = styled.div`
   position: relative;
   flex-grow: 1;
-  height: 100%;
+  min-height: 100%;
+  height: fit-content;
   border: 1px solid ${Colors.lightGrey};
   width: ${(props: any) => props.width}px;
 `;
@@ -94,10 +112,12 @@ const Action: React.SFC<IAction> = ({ title, icon, onClick }) => (
 export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> {
   state = {
     showSunday: false,
-    rowHeight: this.rowHeight
+    rowHeight: this.rowHeight,
+    resizableRowHeight: this.rowHeight
   };
 
   originalHeight = this.rowHeight;
+
 
   get viewport() {
     return this.props.viewport!;
@@ -127,6 +147,8 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     const diff = this.originalHeight - e.clientY;
     this.setState({
       rowHeight: this.state.rowHeight - diff,
+    }, () => {
+      setTimeout(() => this.setState({ resizableRowHeight: ref.clientHeight }), 0);
     });
   }
 
@@ -179,6 +201,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           enable={{ bottom: true }}
           onResizeStart={this.handleResizeStart}
           onResizeStop={this.handleResizeStop}
+          height={this.state.resizableRowHeight}
         >
           {this.renderEntries(0, 3)}
         </ResizableRow>
