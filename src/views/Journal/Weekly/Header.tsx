@@ -63,6 +63,7 @@ export default class Header extends React.Component<IHeaderProps, {}> {
             <i className="fa fa-chevron-right"></i>
           </Link>
         </DateRange>
+        {this.props.children}
       </Container>
     );
   }

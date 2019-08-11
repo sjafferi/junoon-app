@@ -5,3 +5,4 @@ declare module "*.jpeg";
 declare module "*.gif";
 
 declare module '@humblebee/styled-components-breakpoint';
+declare module 'react-scroll-up-button';

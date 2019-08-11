@@ -13,10 +13,12 @@ interface IEditorState {
 
 interface IEditorProps {
   id: string;
-  dragHandlers?: { start: DragHandler, move: DragHandler, end: DragHandler }
+  isTopRow?: boolean;
+  autoFocus?: boolean;
   editorState: EditorState;
-  onChange: (editorState: EditorState, callback: () => void) => void
   onSave: (id: string) => void
+  onChange: (editorState: EditorState, callback: () => void) => void
+  dragHandlers?: { start: DragHandler, move: DragHandler, end: DragHandler }
 }
 
 export default class Editor extends React.Component<IEditorProps, IEditorState> {
@@ -60,6 +62,8 @@ export default class Editor extends React.Component<IEditorProps, IEditorState> 
           editorState={this.props.editorState}
           onChange={this.props.onChange}
           disableToolbar={true}
+          autoFocus={this.props.autoFocus}
+          isTopRow={this.props.isTopRow}
         />
       </Container>
     );

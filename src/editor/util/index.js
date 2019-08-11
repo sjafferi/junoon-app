@@ -1,3 +1,30 @@
+export function elementInViewport(el) {
+  const width = el.offsetWidth;
+  const height = el.offsetHeight;
+
+  const { top, left } = getElementPosition(el);
+
+  return (
+    top >= window.pageYOffset &&
+    left >= window.pageXOffset &&
+    (top + height) <= (window.pageYOffset + window.innerHeight) &&
+    (left + width) <= (window.pageXOffset + window.innerWidth)
+  );
+}
+
+export function getElementPosition(el) {
+  var top = el.offsetTop;
+  var left = el.offsetLeft;
+
+  while (el.offsetParent) {
+    el = el.offsetParent;
+    top += el.offsetTop;
+    left += el.offsetLeft;
+  }
+
+  return { top, left };
+}
+
 /*
 Returns the `boundingClientRect` of the passed selection.
 */

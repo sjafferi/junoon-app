@@ -19,6 +19,7 @@ import rendererFn from './components/customrenderer';
 import customStyleMap from './util/customstylemap';
 import RenderMap from './util/rendermap';
 import keyBindingFn from './util/keybinding';
+import { getElementPosition } from './util';
 import {
   Block,
   Snippets,
@@ -148,6 +149,13 @@ class MediumDraftEditor extends React.Component {
     if (props.addDefaultSnippet) this.addSnippet(Snippets.DEFAULT);
   }
 
+  componentDidMount() {
+    if (this.props.autoFocus) this.focus();
+    if (this._editorNode && this._editorNode.editor) {
+      this.rootRow = this._editorNode.editor.closest(".row");
+    }
+  }
+
   addSnippet = (snippet) => {
     let { editorState } = this.props;
 
@@ -186,49 +194,119 @@ class MediumDraftEditor extends React.Component {
     }
   }
 
+  onLeftArrow = (e) => {
+    const { editorState } = this.props;
+    const content = editorState.getCurrentContent();
+    const selection = editorState.getSelection();
+    const key = selection.getAnchorKey();
+    const firstBlock = content.getFirstBlock();
+    if (selection.getAnchorOffset() === 0) {
+      if (firstBlock.getKey() !== key) {
+        const blockBefore = content.getBlockBefore(key);
+        if (!blockBefore) {
+          return;
+        }
+        e.preventDefault();
+        const newSelection = selection.merge({
+          anchorKey: blockBefore.getKey(),
+          focusKey: blockBefore.getKey(),
+          anchorOffset: blockBefore.getLength(),
+          focusOffset: blockBefore.getLength(),
+          isBackward: false,
+        });
+        this.onChange(EditorState.forceSelection(editorState, newSelection));
+      }
+    }
+  };
+
+
   onUpArrow = (e) => {
     const { editorState } = this.props;
     const content = editorState.getCurrentContent();
     const selection = editorState.getSelection();
     const key = selection.getAnchorKey();
-    const currentBlock = content.getBlockForKey(key);
     const firstBlock = content.getFirstBlock();
-    if (firstBlock.getKey() === key) {
-      // if (firstBlock.getType().indexOf(Block.ATOMIC) === 0) {
-      //   e.preventDefault();
-      //   const newBlock = new ContentBlock({
-      //     type: Block.UNSTYLED,
-      //     key: genKey(),
-      //   });
-      //   const newBlockMap = OrderedMap([[newBlock.getKey(), newBlock]]).concat(content.getBlockMap());
-      //   const newContent = content.merge({
-      //     blockMap: newBlockMap,
-      //     selectionAfter: selection.merge({
-      //       anchorKey: newBlock.getKey(),
-      //       focusKey: newBlock.getKey(),
-      //       anchorOffset: 0,
-      //       focusOffset: 0,
-      //       isBackward: false,
-      //     }),
-      //   });
-      //   this.onChange(EditorState.push(editorState, newContent, 'insert-characters'));
-      // }
-    } else {
+    if (firstBlock.getKey() !== key) {
       const blockBefore = content.getBlockBefore(key);
       if (!blockBefore) {
         return;
       }
+      const offset = Math.min(selection.getAnchorOffset(), blockBefore.getLength());
       e.preventDefault();
       const newSelection = selection.merge({
         anchorKey: blockBefore.getKey(),
         focusKey: blockBefore.getKey(),
-        anchorOffset: blockBefore.getLength(),
-        focusOffset: blockBefore.getLength(),
+        anchorOffset: offset,
+        focusOffset: offset,
         isBackward: false,
       });
       this.onChange(EditorState.forceSelection(editorState, newSelection));
     }
+
+    setTimeout(() => {
+      const parentElement = window.getSelection().focusNode.parentElement;
+      let { top } = getElementPosition(parentElement) || {};
+      const initialTop = top;
+      if (!isNaN(top) && top > 50) {
+        const { top: topBound } = getElementPosition(this.rootRow);
+        const scrollTop = window.scrollY > topBound ? this.rootRow.scrollTop + window.scrollY : this.rootRow.scrollTop;
+        const bottomBound = this.props.isTopRow ? this.rootRow.clientHeight + 50 : window.innerHeight;
+        top -= scrollTop;
+        top = Math.floor(top) - 20;
+        const isInView = top >= topBound && top <= bottomBound;
+        if (!isInView) {
+          this.rootRow.scrollTop = topBound - initialTop;
+        }
+      }
+    }, 0);
   };
+
+  onDownArrow = (e) => {
+    const { editorState } = this.props;
+    const content = editorState.getCurrentContent();
+    const selection = editorState.getSelection();
+    const key = selection.getAnchorKey();
+    const lastBlock = content.getLastBlock();
+    if (lastBlock.getKey() !== key) {
+      const blockAfter = content.getBlockAfter(key);
+      if (!blockAfter) {
+        return;
+      }
+      const offset = Math.min(selection.getAnchorOffset(), blockAfter.getLength());
+      e.preventDefault();
+      const newSelection = selection.merge({
+        anchorKey: blockAfter.getKey(),
+        focusKey: blockAfter.getKey(),
+        anchorOffset: offset,
+        focusOffset: offset,
+        isBackward: false,
+      });
+      this.onChange(EditorState.forceSelection(editorState, newSelection));
+    }
+
+    this.setScrollPositionOnDownArrow();
+  };
+
+  setScrollPositionOnDownArrow = () => {
+    const parentElement = window.getSelection().focusNode.parentElement;
+    let { top } = getElementPosition(parentElement) || {};
+    const initialTop = top;
+    top += 100;
+    top -= this.rootRow.scrollTop;
+    if (!isNaN(top) && top > 100) {
+      const { top: topBound } = getElementPosition(this.rootRow);
+      const bottomBound = this.props.isTopRow ? this.rootRow.clientHeight + 50 : window.innerHeight;
+      const isInView = top >= topBound && top <= bottomBound;
+      if (!isInView) {
+        const rootRowScrollTop = initialTop - topBound;
+        if (rootRowScrollTop >= this.rootRow.clientHeight) {
+          parentElement.scrollIntoView();
+        } else {
+          this.rootRow.scrollTop = rootRowScrollTop
+        }
+      }
+    }
+  }
 
   /*
   Adds a hyperlink on the selected text with some basic checks.
@@ -414,6 +492,10 @@ class MediumDraftEditor extends React.Component {
         return HANDLED;
       }
 
+      if (blockType.indexOf(Block.TODO) === 0) {
+        setTimeout(this.setScrollPositionOnDownArrow, 0);
+      }
+
       if (currentBlock.getLength() === 0) {
         switch (blockType) {
           case Block.UL:
@@ -421,12 +503,9 @@ class MediumDraftEditor extends React.Component {
           case Block.BLOCKQUOTE:
           case Block.BLOCKQUOTE_CAPTION:
           case Block.CAPTION:
-          case Block.TODO:
           case Block.H2:
           case Block.H3:
           case Block.H1:
-          // this.onChange(resetBlockWithType(editorState, Block.UNSTYLED));
-          // return HANDLED;
           default:
             return NOT_HANDLED;
         }
@@ -579,6 +658,8 @@ class MediumDraftEditor extends React.Component {
             onChange={this.onChange}
             onTab={this.onTab}
             onUpArrow={this.onUpArrow}
+            onDownArrow={this.onDownArrow}
+            onLeftArrow={this.onLeftArrow}
             blockRenderMap={this.props.blockRenderMap}
             handleKeyCommand={this.handleKeyCommand}
             handleBeforeInput={this.handleBeforeInput}

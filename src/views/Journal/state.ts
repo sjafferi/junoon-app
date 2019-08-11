@@ -117,8 +117,8 @@ export default class JournalState {
       block.parentElement!.classList.remove('dragging');
       const editors = document.querySelectorAll('.md-RichEditor-root');
       let editor, success;
-      for (let index in editors) {
-        if (isOverlapping(editors[index], block, x, y)) {
+      for (const index in editors) {
+        if (isElement(editors[index]) && isOverlapping(editors[index], block, x, y)) {
           editor = editors[index];
           break;
         }
