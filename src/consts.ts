@@ -1,5 +1,5 @@
-export const API_HOST = "https://api.junoon.io";
-// export const API_HOST = process.env.API_HOST;
+// export const API_HOST = "https://api.junoon.io";
+export const API_HOST = process.env.API_HOST;
 
 export const BREAKPOINTS = {
   xxs: 0,

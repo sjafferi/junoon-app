@@ -171,7 +171,7 @@ export class Journal {
       const dates: moment.Moment[] = [];
       entries = entries.reduce((acc: { [key: string]: EditorState }, { id, date, content }: IEntry) => {
         let editorState = content ? EditorState.createWithContent(convertFromRaw(JSON.parse(content))) : EditorState.createEmpty();
-        const formattedDate = moment.utc(date);
+        const formattedDate = moment(date);
         if (!content) {
           const snippet = Snippets.DEFAULT;
           snippet[0] = { ...snippet[0], placeholder: formattedDate.format("ddd D") };
@@ -193,7 +193,7 @@ export class Journal {
         const id = this.getKeyForDay(moment(form.date));
         form.id = id;
         form.submitted = true;
-        form.date = moment.utc(form.date).unix();
+        form.date = moment(form.date).unix();
         acc[id] = form;
         return acc;
       }, {});
@@ -228,7 +228,7 @@ export class Journal {
   }
 
   getKeyForEntityMap = (day: moment.Moment) => {
-    return day.startOf('day').unix();
+    return day.utc().startOf('day').unix();
   }
 
   getFormForDay = (day: moment.Moment) => {

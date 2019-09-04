@@ -12,7 +12,6 @@ import { Modal, EditableInput } from 'ui';
 import { FormStyles } from "./FormStyles";
 import { transformMetricToSchema, transformMetricToUISchema } from "../util";
 
-
 import State from "../state";
 
 interface IFormProps {
