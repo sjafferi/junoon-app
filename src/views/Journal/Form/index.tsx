@@ -10,10 +10,10 @@ import { IErrorResponse } from 'api';
 import { Journal, IForm, ICreateMetric, RouterStore } from 'stores';
 import { Modal, EditableInput } from 'ui';
 import { FormStyles } from "./FormStyles";
-import { genMetricId, transformMetricToSchema, transformMetricToUISchema } from "../util";
+import { transformMetricToSchema, transformMetricToUISchema } from "../util";
 
 
-import State from "../State";
+import State from "../state";
 
 interface IFormProps {
   date: string;
