@@ -41,22 +41,19 @@ export const addNewBlock = (editorState, newType = Block.UNSTYLED, initialData =
   if (!currentBlock) {
     return editorState;
   }
-  if (currentBlock.getLength() === 0) {
-    if (currentBlock.getType() === newType && newType !== Block.TODO) {
-      return editorState;
-    }
-    const newBlock = currentBlock.merge({
-      type: newType,
-      data: getDefaultBlockData(newType, initialData),
-      depth
-    });
-    const newContentState = contentState.merge({
-      blockMap: blockMap.set(key, newBlock),
-      selectionAfter: selectionState,
-    });
-    return EditorState.push(editorState, newContentState, 'change-block-type');
+  if (currentBlock.getType() === newType && newType !== Block.TODO) {
+    return editorState;
   }
-  return editorState;
+  const newBlock = currentBlock.merge({
+    type: newType,
+    data: getDefaultBlockData(newType, initialData),
+    depth
+  });
+  const newContentState = contentState.merge({
+    blockMap: blockMap.set(key, newBlock),
+    selectionAfter: selectionState,
+  });
+  return EditorState.push(editorState, newContentState, 'change-block-type');
 };
 
 
@@ -142,7 +139,6 @@ export const addNewBlockAt = (
   const content = editorState.getCurrentContent();
   const blockMap = content.getBlockMap();
   const block = blockMap.get(pivotBlockKey);
-  console.log("PIVOT BLOCK KEY:", pivotBlockKey);
   if (!block) {
     throw new Error(`The pivot key - ${pivotBlockKey} is not present in blockMap.`);
   }

@@ -1,18 +1,9 @@
-function getToken() {
-    let user = localStorage.getItem('user');
-    if (user) {
-        user = JSON.parse(user);
-        return (user as any).token;
-    }
-}
-
-export function post(url = ``, data = {}) {
+export function post(url = ``, data = {}, includeCreds: boolean = true) {
     // Default options are marked with *
     return fetch(url, {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         mode: "cors", // no-cors, cors, *same-origin
-        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: "same-origin", // include, *same-origin, omit
+        credentials: includeCreds ? "include" : "same-origin", // include, *same-origin, omit
         headers: {
             "Content-Type": "application/json",
         },
@@ -24,15 +15,14 @@ export function post(url = ``, data = {}) {
 }
 
 
-export function get(url = ``, token?: string) {
+export function get(url = ``, includeCreds: boolean = true) {
     // Default options are marked with *
     return fetch(url, {
         method: "GET", // *GET, POST, PUT, DELETE, etc.
         mode: "cors", // no-cors, cors, *same-origin
-        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: includeCreds ? "include" : "same-origin",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": token || getToken()
+            "Content-Type": "application/json"
         },
     })
         .then(response => response.json()); // parses response to JSON

@@ -36,21 +36,21 @@ export const Spacer: any = styled.div`
 `
 
 export const ButtonStyle = css`
-background: #26A65B;
-color: white;
-font-weight: 400;
-font-size: 1em;
-cursor: pointer;
-display: inline;
-padding: 6.525px 23.4px;
-text-align: center;
+  background: #26A65B;
+  color: white;
+  font-weight: 400;
+  font-size: 1em;
+  cursor: pointer;
+  display: inline;
+  padding: 6.525px 23.4px;
+  text-align: center;
 
-transition: all 0.3s ease 0s;
-text-decoration: none !important;
+  transition: all 0.3s ease 0s;
+  text-decoration: none !important;
 
-&:active, &:hover, &:focus {
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-}
+  &:active, &:hover, &:focus {
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  }
 
   ${breakpoint.down('xs')`{
     width: 80%;

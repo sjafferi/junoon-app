@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "mobx-react";
-import { Router } from "react-router";
+import { Router } from "react-router-dom";
 
 import { RootStore } from "./stores";
 

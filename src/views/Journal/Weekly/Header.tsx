@@ -3,19 +3,24 @@ import * as moment from 'moment';
 import { Link } from 'react-router-dom';
 import styled from "styled-components";
 
-import { Colors } from 'consts';
+import { Colors } from 'ui';
 
 const Container = styled.div`
-  width: 100vw;
+  width: 91vw;
   height: 50px;
+  padding: 0 30px;
   display: flex;
-  justify-content: center;
+  box-sizing: border-box;
+  justify-content: space-between;
 `;
 
-const DateRange = styled.div`
+const Column = styled.div`
   display: flex;
   align-items: center;
+`;
 
+const DateRange = styled(Column)`
+  margin-left: 120px;
   a {
     padding: 0 20px;
     color: #7b7b7b;
@@ -28,6 +33,8 @@ const Title = styled.h3`
 
 interface IHeaderProps {
   start: moment.Moment;
+  LeftElement: React.ReactNode;
+  RightElement: React.ReactNode;
 }
 
 export default class Header extends React.Component<IHeaderProps, {}> {
@@ -54,6 +61,9 @@ export default class Header extends React.Component<IHeaderProps, {}> {
   render() {
     return (
       <Container>
+        <Column>
+          {this.props.LeftElement}
+        </Column>
         <DateRange>
           <Link to={`/journal/weekly/${this.prevWeek}`} >
             <i className="fa fa-chevron-left"></i>
@@ -63,7 +73,9 @@ export default class Header extends React.Component<IHeaderProps, {}> {
             <i className="fa fa-chevron-right"></i>
           </Link>
         </DateRange>
-        {this.props.children}
+        <Column>
+          {this.props.RightElement}
+        </Column>
       </Container>
     );
   }

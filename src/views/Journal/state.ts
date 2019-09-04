@@ -1,105 +1,95 @@
-import { action, observable, computed } from 'mobx';
-import { assign, debounce, entries, range, isElement, pick } from 'lodash';
+import { action, observable, computed, toJS } from 'mobx';
+import { assign, debounce, entries, range, merge, isElement, pick, pickBy } from 'lodash';
 import * as moment from 'moment';
 import {
-  EditorState, genKey, convertToRaw, convertFromRaw
+  EditorState, genKey, convertToRaw, convertFromRaw, RawDraftContentBlock
 } from 'draft-js';
-import { Snippets } from "editor/util/constants"
+import { Journal, IMetric, IForm } from "stores";
 import { addNewBlockAt, removeBlockAt } from "editor/model"
-import { addSnippet, isOverlapping, getBlockKey, containsPoint } from "./util";
-import { fetchEntries, updateEntries } from "api"
-
-export type DragHandler = (block: HTMLElement, x: number, y: number) => void;
-
-export interface IEntry {
-  id?: string,
-  date?: number,
-  content: string,
-}
+import { isOverlapping, getBlockKey, containsPoint, genMetricId } from "./util";
 
 export default class JournalState {
-  @observable public entries: { [key: string]: EditorState } = {};
   @observable public selectedWeek: moment.Moment = moment();
-  public entityMap: { [key: number]: { id: string } } = {};
-
   public lockedCalls: { [key: string]: boolean } = {};
 
-  saveMany = async (ids: string[]) => {
-    const payload = entries(pick(this.entries, ids)).map(([id, editorState]) => ({ id, content: JSON.stringify(convertToRaw(editorState.getCurrentContent())) }));
-    const response = await updateEntries(payload);
-    return response;
+  constructor(public journalStore: Journal) {
+    journalStore.observers.push(this);
+  }
+
+  @action
+  updateFormState = (day: moment.Moment, updateTasks = true, updateMetrics = true) => {
+    const form = this.journalStore.getFormForDay(day) || { tasks: [] };
+    const key = this.journalStore.getKeyForDay(day);
+    const editorState = this.journalStore.getEntryForDay(day);
+    if (updateTasks && editorState) {
+      const blocks = convertToRaw(editorState!.getCurrentContent()).blocks;
+      const tasks = this.journalStore.generateFormTasksFromBlocks(blocks);
+      if (tasks && tasks.length) {
+        form.tasks = merge(form.tasks, tasks);
+      } else {
+        form.tasks = [];
+      }
+    }
+    if (updateMetrics && ((!form.metrics || !form.metrics!.length) && this.journalStore.metrics.length)) {
+      form.metricsSchema = this.journalStore.metrics.reduce((acc: Record<string, IMetric["data"]>, metric) => {
+        if (!metric.showInForm) return acc;
+        const id = metric.id!;
+        acc[id] = toJS(metric.data);
+        return acc;
+      }, {}) as IForm["metricsSchema"];
+      form.uiSchema = this.journalStore.metrics.reduce((acc: IForm["uiSchema"], metric) => {
+        if (!metric.showInForm) return acc;
+        const id = metric.id!;
+        if (!metric.ui) return acc;
+        acc![id] = Object.entries(metric.ui).reduce((nested_acc: IMetric["ui"], [key, value]) => {
+          nested_acc![`ui:${key}`] = toJS(value);
+          return nested_acc;
+        }, {});
+        return acc;
+      }, {}) as IForm["uiSchema"];
+    }
+    form.id = key;
+    form.date = day.unix();
+
+    this.journalStore.forms[key] = form;
+  }
+
+  @action
+  updateEntriesForWeek = (date: moment.Moment = this.startOfSelectedWeek) => {
+    const key = date.unix();
+    if (!this.journalStore.entityMap[key]) {
+      if (this.journalStore.isLoggedIn) {
+        const fetchWeek = this.debouncedFetchWeek(key);
+        if (fetchWeek) fetchWeek(date);
+      } else {
+        this.journalStore.generateEntries(date);
+      }
+    }
   }
 
   @computed
   get entriesForWeek() {
-    const startOfWeek = this.selectedWeek.clone().startOf('isoWeek').startOf('day');
-    const endOfWeek = this.selectedWeek.clone().endOf('isoWeek');
-    const key = startOfWeek.unix();
+    const date = this.startOfSelectedWeek.clone();
+    const key = this.journalStore.getKeyForEntityMap(this.startOfSelectedWeek);
     const ids: string[] = [];
-    if (!this.entityMap[key]) {
-      const fetchWeek = this.debouncedFetchWeek(key);
-      if (fetchWeek) fetchWeek(this.selectedWeek);
-      return pick(this.entries, ids);
+    if (!this.journalStore.entityMap[key]) {
+      this.updateEntriesForWeek();
+      return pick(this.journalStore.entries, ids);
     }
-    const { id } = this.entityMap[key];
-    ids.push(id);
-    while (startOfWeek.add(1, 'days').diff(endOfWeek) <= 0) {
-      const { id } = this.entityMap[startOfWeek.unix()];
+    let { id } = this.journalStore.entityMap[key];
+    while (date.add(1, 'days').diff(this.endOfSelectedWeek) < 0) {
       ids.push(id);
+      id = this.journalStore.entityMap[this.journalStore.getKeyForEntityMap(date)].id;
     }
-    return pick(this.entries, ids);
-  }
-
-  @action
-  fetchWeek = async (day: moment.Moment = moment()) => {
-    const startOfWeek = day.clone().startOf('isoWeek').unix();
-    const endOfWeek = day.clone().endOf('isoWeek').unix();
-    let entries;
-    try {
-      entries = await fetchEntries(startOfWeek, endOfWeek);
-      console.log("Fetching week: ", day.toString());
-    } catch (e) {
-
-    }
-
-    if (entries && !entries.error) {
-      entries = entries.reduce((acc: { [key: string]: EditorState }, { id, date, content }: IEntry) => {
-        let editorState = content ? EditorState.createWithContent(convertFromRaw(JSON.parse(content))) : EditorState.createEmpty();
-        if (!content) {
-          const snippet = Snippets.DEFAULT;
-          const formattedDate = moment(date);
-          snippet[0] = { ...snippet[0], placeholder: formattedDate.format("ddd D") };
-          editorState = addSnippet(Snippets.DEFAULT, editorState);
-        }
-        acc[id!] = editorState;
-        this.entityMap[moment(date).startOf('day').unix()] = { id: id! };
-        return acc;
-      }, {});
-
-      this.assign({ entries: { ...this.entries, ...entries } });
-    }
-
-    return entries;
+    ids.push(id);
+    return pick(this.journalStore.entries, ids);
   }
 
   debouncedFetchWeek = (key: string | number, timeout: number = 5000) => {
     if (this.lockedCalls[key]) return;
     this.lockedCalls[key] = true;
     setTimeout(() => this.lockedCalls[key] = false, timeout);
-    return debounce(this.fetchWeek, timeout, { leading: true, trailing: false });
-  }
-
-  generateEntries = () => {
-    const startOfWeek = moment().startOf('isoWeek');
-    this.entries = range(6).reduce((acc: { [key: string]: EditorState }) => {
-      const date = startOfWeek.add(1, 'days');
-      let editorState = EditorState.createEmpty();
-      const snippet = Snippets.DEFAULT;
-      snippet[0] = { ...snippet[0], placeholder: date.format("ddd D") };
-      editorState = addSnippet(Snippets.DEFAULT, editorState);
-      acc[genKey()] = editorState;
-      return acc;
-    }, {});
+    return debounce(this.journalStore.fetchWeek, timeout, { leading: true, trailing: false });
   }
 
   @action
@@ -127,8 +117,8 @@ export default class JournalState {
         const blocks = editor.querySelectorAll('.md-block');
         const currBlockKey = getBlockKey(block.parentElement!);
         const targetEditorId = editor.getAttribute("id")!;
-        const content = this.entries[currEditorId].getCurrentContent();
-        const contentState = this.entries[targetEditorId].getCurrentContent();
+        const content = this.journalStore.entries[currEditorId].getCurrentContent();
+        const contentState = this.journalStore.entries[targetEditorId].getCurrentContent();
         const blockMap = content.getBlockMap();
         const currBlock = blockMap.get(currBlockKey);
         for (let index in blocks) {
@@ -137,8 +127,8 @@ export default class JournalState {
             const targetBlockAfterKey = getBlockKey(targetBlock);
             const targetBlockKey = contentState.getKeyBefore(targetBlockAfterKey) || contentState.getFirstBlock().getKey();
             if (targetBlockAfterKey !== null && !targetBlockKey) continue;
-            this.entries[targetEditorId] = addNewBlockAt(this.entries[targetEditorId], targetBlockKey, currBlock.getType(), currBlock.getData(), currBlock.getText(), currBlock.getDepth());
-            this.entries[currEditorId] = removeBlockAt(this.entries[currEditorId], currBlockKey);
+            this.journalStore.entries[targetEditorId] = addNewBlockAt(this.journalStore.entries[targetEditorId], targetBlockKey, currBlock.getType(), currBlock.getData(), currBlock.getText(), currBlock.getDepth());
+            this.journalStore.entries[currEditorId] = removeBlockAt(this.journalStore.entries[currEditorId], currBlockKey);
             success = true;
             break;
           }
@@ -147,8 +137,8 @@ export default class JournalState {
           if (targetEditorId !== currEditorId) {
             const targetBlock = contentState.getLastBlock();
             const targetBlockKey = targetBlock.getKey();
-            this.entries[targetEditorId] = addNewBlockAt(this.entries[targetEditorId], targetBlockKey, currBlock.getType(), currBlock.getData(), currBlock.getText(), currBlock.getDepth());
-            this.entries[currEditorId] = removeBlockAt(this.entries[currEditorId], currBlockKey);
+            this.journalStore.entries[targetEditorId] = addNewBlockAt(this.journalStore.entries[targetEditorId], targetBlockKey, currBlock.getType(), currBlock.getData(), currBlock.getText(), currBlock.getDepth());
+            this.journalStore.entries[currEditorId] = removeBlockAt(this.journalStore.entries[currEditorId], currBlockKey);
           }
         }
       }
@@ -162,5 +152,28 @@ export default class JournalState {
   @action
   assign(fields: { [id: string]: any }) {
     assign(this, fields);
+  }
+
+  shouldShowFormLink = (day: moment.Moment) => {
+    const form = this.journalStore.getFormForDay(day);
+    const isEmpty = !(form && ((form.tasks && form.tasks.length) || (form.metrics && Object.keys(form.metrics || {}).length)))
+    return this.journalStore.isLoggedIn && !isEmpty && moment().isAfter(day)
+  }
+
+  public onNotify = (type: string, payload: any) => {
+    switch (type) {
+      case "CREATE_ENTRY": {
+        this.updateFormState(payload, true, true);
+        return;
+      }
+    }
+  }
+
+  get startOfSelectedWeek() {
+    return this.selectedWeek.clone().utc().startOf('isoWeek').startOf('day');
+  }
+
+  get endOfSelectedWeek() {
+    return this.selectedWeek.clone().utc().endOf('isoWeek');
   }
 }

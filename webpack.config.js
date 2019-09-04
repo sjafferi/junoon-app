@@ -109,5 +109,10 @@ module.exports = {
       },
       test: /\.(jpe?g|png|gif|svg)$/i
     })
-  ]
+  ],
+  node: {
+    net: 'empty',
+    tls: 'empty',
+    dns: 'empty'
+  }
 };

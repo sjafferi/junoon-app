@@ -3,25 +3,29 @@ import * as moment from 'moment';
 import styled, { css } from 'styled-components';
 import { Resizable, ResizeCallback, ResizeStartCallback } from "re-resizable";
 import ScrollUpButton from "react-scroll-up-button";
+import { debounce } from "lodash";
+import { action, toJS } from "mobx";
 import { inject, observer } from "mobx-react";
 import { ToastContainer, toast } from 'react-toastify';
-import { Viewport } from 'stores';
-import { Colors } from 'consts';
+import { Viewport, RouterStore, Journal, User } from 'stores';
+import { History } from "history";
+import { Colors, Primary } from 'ui';
 import { EditorState } from 'draft-js';
+import AnalysisModal from '../AnalysisModal';
 import Editor from '../Editor';
 import Header from './Header';
 import State from "../state";
 
-const { useEffect, useState } = React;
+const { useEffect } = React;
 
 import 'react-toastify/dist/ReactToastify.css';
 import "flexboxgrid/dist/flexboxgrid.min.css";
 
 interface IWeeklyState {
-  snappedRows: number[];
   resizing: boolean;
   loading: boolean;
   showSunday: boolean;
+  showAnalyze?: boolean;
   resizableRowHeight: number;
 }
 
@@ -29,10 +33,11 @@ interface IWeeklyProps {
   state: State;
   start: string;
   viewport?: Viewport;
-  onChange: (id: string) => (editorState: EditorState, callback: () => void) => void;
+  history?: History;
+  router?: RouterStore;
+  journal?: Journal;
+  user?: User;
 }
-
-const MIN_ROW_HEIGHT = 25;
 
 const Container = styled.div`
   display: flex;
@@ -49,7 +54,7 @@ const Container = styled.div`
     cursor: pointer;
     background-color: transparent;
     z-index: 5;
-    > button {
+    > button { 
       font-size: 12px;
       padding: 8px;
       color: ${Colors.darkLightGrey};
@@ -83,17 +88,11 @@ const Row: any = styled.div`
 
 const ResizableRow: any = styled(Resizable)`
   ${RowStyles}
-  position: static !important;
   border-top: 1px solid ${Colors.lightGrey};
   border-bottom: 1px solid ${Colors.lightGrey};
 
-  ${(props: any) =>
-    props.snapped ? "transition: height 100ms ease-in;" : ""
-  }
-
   > span > div {
-    top: ${(props: any) => props.height + 48}px;
-    bottom: none;
+    z-index: 3;
   }
 `;
 
@@ -127,16 +126,34 @@ const ActionContainer = styled.a`
   i {
     margin-right: 5px;
   }
+  &.form {
+    color: #818181bd;
+    display: flex;
+    flex-direction: row-reverse;
+    margin-left: 12px;
+    i {
+      margin-right: 0;
+      margin-left: 5px;
+    }
+  }
 `;
+
+const HeaderActions = styled.div`
+  display: flex;
+  button + button {
+    border-left: none !important;
+  }
+`
 
 interface IAction {
   title: string;
   icon: string;
   onClick: () => void;
+  className?: string;
 }
 
-const Action: React.SFC<IAction> = ({ title, icon, onClick }) => (
-  <ActionContainer className="noselect" onClick={onClick}>
+const Action: React.SFC<IAction> = ({ title, icon, onClick, className }) => (
+  <ActionContainer className={`noselect ${className ? className : ""}`} onClick={onClick}>
     <i className={`fa ${icon}`} />
     {title}
   </ActionContainer>
@@ -147,7 +164,7 @@ interface IAutosave {
   saving: boolean;
 }
 
-const AutosaveConatiner = styled.div`
+const AutosaveContainer = styled.div`
   position: absolute;
   left: 25px;
   top: 25px;
@@ -163,9 +180,9 @@ const Autosave: React.SFC<IAutosave> = ({ save, saving }) => {
   }, []);
 
   return (
-    <AutosaveConatiner>
-      {saving ? "Saving..." : "Saved."}
-    </AutosaveConatiner>
+    <AutosaveContainer>
+      {/* {saving ? "Saving..." : "Saved."} */}
+    </AutosaveContainer>
   );
 };
 
@@ -179,29 +196,52 @@ const ScrollUp: React.SFC = () => (
   </ScrollUpButton>
 );
 
+@inject("router")
 @inject("viewport")
+@inject("user")
+@inject("journal")
 @observer
 export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> {
   state = {
-    snappedRows: [0, 0],
     resizing: false,
     loading: false,
-    showSunday: false,
+    showAnalyze: false,
+    showSunday: moment().day() === 0,
     resizableRowHeight: this.rowHeight
   };
 
+  changed = false;
+
   constructor(props: IWeeklyProps) {
     super(props);
-    const resizableRowLayout = JSON.parse(localStorage.getItem('resizableRowLayout') || '{}');
+
+    const resizableRowLayout = JSON.parse(localStorage.getItem("resizableRowLayout") || "{}");
 
     if (resizableRowLayout && resizableRowLayout.height) {
-      const rowHeight = parseFloat(resizableRowLayout.height) * window.innerHeight;
-      this.state.resizableRowHeight = rowHeight;
+      const resizableRowHeight = resizableRowLayout.height * window.innerHeight;
+      this.state.resizableRowHeight = resizableRowHeight;
+    }
+
+    this.onChangeWeek(moment(props.start, "MMMD"));
+  }
+
+
+  componentWillUpdate(nextProps: Readonly<IWeeklyProps>) {
+    if (this.props.start !== nextProps.start) {
+      this.onChangeWeek(moment(nextProps.start, "MMMD"));
     }
   }
 
   get viewport() {
     return this.props.viewport!;
+  }
+
+  get journalStore() {
+    return this.props.journal!;
+  }
+
+  get journalState() {
+    return this.props.state;
   }
 
   get columnWidth() {
@@ -212,41 +252,30 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     return (window.innerHeight - 50) / 2;
   }
 
+  get entries() {
+    return this.journalStore.entries;
+  }
+
   get keys() {
-    return Object.keys(this.props.state.entriesForWeek).map((key) => key);
+    return Object.keys(this.journalState.entriesForWeek).map((key) => key);
   }
 
   get start() {
-    return moment(this.props.start, "MMMD");
+    return moment(this.props.start, "MMMD").startOf('isoWeek').startOf('day');
   }
 
-  setHeight = (resizableRowHeight: number) => {
-    this.setState({ resizableRowHeight });
-    localStorage.setItem("resizableRowLayout", JSON.stringify({
-      height: resizableRowHeight / window.innerHeight,
-    }));
+  get week() {
+    const startOfWeek = this.start.startOf('isoWeek');
+    const endOfWeek = this.start.clone().endOf('isoWeek');
+    let start = startOfWeek.format("MMM D"), end = endOfWeek.format("D");
+    if (startOfWeek.month() !== endOfWeek.month()) {
+      end = endOfWeek.format("MMM D");
+    }
+    return `${start} - ${end}`;
   }
 
   handleResizeStart: ResizeStartCallback = (e, direction, ref) => {
     this.setState({ resizing: true });
-  }
-
-  handleResize: ResizeStartCallback = (e, direction, ref) => {
-    if (!this.state.resizing) return;
-
-    const { snappedRows } = this.state;
-    if (!snappedRows[0] && ref.clientHeight <= MIN_ROW_HEIGHT) {
-      snappedRows[0] = 1;
-      this.setHeight(10)
-    } else if (snappedRows[0] && ref.clientHeight > MIN_ROW_HEIGHT) {
-      snappedRows[0] = 0;
-      this.setHeight(50)
-    } else if (!snappedRows[1] && ref.clientHeight >= window.innerHeight - 50 - MIN_ROW_HEIGHT) {
-      snappedRows[1] = 1;
-      this.setHeight(window.innerHeight - 50 - 10)
-    } else if (snappedRows[1] && ref.clientHeight < window.innerHeight - MIN_ROW_HEIGHT) {
-      snappedRows[1] = 0;
-    }
   }
 
   handleResizeStop: ResizeCallback = (e, direction, ref, d) => {
@@ -264,8 +293,20 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
 
   toggleShowSunday = () => this.setState({ showSunday: !this.state.showSunday })
 
+  @action
+  openForm = (dayOfWeek: number) => {
+    const regex = /(\/journal\/weekly\/[a-zA-Z]+[0-9]+$)/g;
+
+    if (regex.test(location.pathname)) {
+      const formPath = `${location.pathname}/form/${this.start.add(dayOfWeek, 'd').format("MMMD")}`;
+      // const formPath = `/journal/weekly/form`;
+      this.props.history!.push(formPath);
+    }
+  }
+
   getActionsForEntry = (dayOfWeek: number): IAction[] => {
-    let actions = []
+    const day = this.start.add(dayOfWeek, 'd');
+    let actions = [];
     if (dayOfWeek >= 5) { // Sat / Sun
       actions.push({
         title: `Swap ${dayOfWeek === 5 ? 'Sun' : 'Sat'}`,
@@ -273,21 +314,58 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
         onClick: this.toggleShowSunday
       });
     }
+    if (this.journalState.shouldShowFormLink(day)) {
+      actions.push({
+        title: `${this.props.journal!.getFormForDay(day) ? "Edit" : "Fill out"} form`,
+        icon: 'fa-expand',
+        className: 'form',
+        onClick: () => this.openForm(dayOfWeek)
+      });
+    }
     return actions;
   }
 
   onSave = async (showToast?: boolean) => {
-    this.setState({ loading: true });
-    await this.props.state.saveMany(this.keys);
+    if (!this.changed) return;
+    if (!this.journalStore.isLoggedIn) {
+      toast('Please log in to save your changes');
+      return;
+    }
+    await this.journalStore.saveMany(this.keys);
     setTimeout(() => {
       if (showToast) toast("Save successful!");
-      this.setState({ loading: false })
     }, 1000);
+    this.changed = false;
   }
+
+  @action
+  onChangeWeek = (date: moment.Moment) => {
+    this.journalState.assign({ selectedWeek: date.startOf('isoWeek') });
+    this.journalState.updateEntriesForWeek();
+  }
+
+  @action
+  onChange = (id: string, index: number) => (editorState: EditorState, callback: () => void) => {
+    const currentContent = this.entries[id].getCurrentContent();
+    const newContent = editorState.getCurrentContent();
+
+    if (currentContent !== newContent) {
+      this.changed = true;
+      const day = this.start.add(index, 'd');
+      this.debouncedUpdateFormState(day, true, false);
+    }
+
+    this.entries[id] = editorState;
+    this.journalStore.assign({ entries: this.entries });
+    if (callback) {
+      callback();
+    }
+  };
+
+  debouncedUpdateFormState = debounce(this.journalState.updateFormState, 500, { leading: true, trailing: false });
 
   renderEntries = (start: number, end: number, numColumns = 4) => {
     const width = this.columnWidth / (numColumns / 4);
-
     return this.keys.map((key, index) => ({ key, index })).filter((key, index) => index >= start && index < end).map(({ key, index }) => {
       const actions = this.getActionsForEntry(index);
       return (
@@ -298,31 +376,52 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
             isTopRow={index <= 2}
             autoFocus={index === 0}
             onSave={() => this.onSave(true)}
-            onChange={this.props.onChange(key)}
-            editorState={this.props.state.entriesForWeek[key]}
-            dragHandlers={this.props.state.dragHandlers(key)}
+            onChange={this.onChange(key, index)}
+            editorState={this.journalState.entriesForWeek[key]}
+            dragHandlers={this.journalState.dragHandlers(key)}
           />
         </Column>
       );
     });
   }
 
+  onAnalyzeClick = async () => {
+    await this.journalStore.fetchAnalysis(this.start);
+    this.setState({ showAnalyze: true });
+  }
+
+  renderHeaderRight = () => {
+    const loggedIn = this.journalStore.isLoggedIn;
+    return (
+      <HeaderActions>
+        {!loggedIn && (
+          <Primary onClick={() => this.props.router!.push({ search: "?login=true" })}>Login</Primary>
+        )}
+        {loggedIn && (
+          <Primary onClick={this.onAnalyzeClick}>Analyze</Primary>
+        )}
+        {loggedIn && (
+          <Primary onClick={() => this.props.user!.signout()}>Sign out</Primary>
+        )}
+      </HeaderActions>
+    );
+  }
+
   render() {
     const width = this.columnWidth * 3.05;
     return (
       <Container>
-        <Header start={this.start}>
-          <Autosave saving={this.state.loading} save={this.onSave} />
-        </Header>
+        <Header
+          LeftElement={this.journalStore.isLoggedIn && <Autosave saving={this.state.loading} save={this.onSave} />}
+          RightElement={this.renderHeaderRight()}
+          start={this.start}
+        />
         <ResizableRow
           className={`row ${this.state.resizing ? "resizing" : ""}`}
           size={{ width, height: this.state.resizableRowHeight }}
           enable={{ bottom: true }}
           onResizeStart={this.handleResizeStart}
-          // onResize={this.handleResize}
           onResizeStop={this.handleResizeStop}
-          height={this.state.resizableRowHeight}
-          snapped={this.state.snappedRows[0] || this.state.snappedRows[1]}
         >
           {this.renderEntries(0, 3)}
         </ResizableRow>
@@ -340,6 +439,12 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           rtl={false}
           draggable
           pauseOnHover
+        />
+        <AnalysisModal
+          week={this.week}
+          open={this.state.showAnalyze}
+          close={() => this.setState({ showAnalyze: false })}
+          analysis={toJS(this.journalStore.analyses[this.start.unix()])}
         />
         <ScrollUp />
       </Container>

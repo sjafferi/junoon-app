@@ -4,21 +4,27 @@ import { History, createBrowserHistory } from "history";
 
 export class RootStore {
   public history: History;
-  public routerStore: stores.RouterStore;
+  public router: stores.RouterStore;
   public viewport: stores.Viewport;
+  public user: stores.User;
+  public journal: stores.Journal;
 
   public constructor() {
     const browerHistory = createBrowserHistory();
 
-    this.routerStore = new stores.RouterStore();
-    this.history = syncHistoryWithStore(browerHistory, this.routerStore);
+    this.router = new stores.RouterStore();
+    this.history = syncHistoryWithStore(browerHistory, this.router);
 
     this.viewport = new stores.Viewport(this).listenForTouch().updateOnResize();
+    this.user = new stores.User(this);
+    this.journal = new stores.Journal(this);
 
     return {
-      routerStore: this.routerStore,
+      router: this.router,
       history: this.history,
-      viewport: this.viewport
+      viewport: this.viewport,
+      user: this.user,
+      journal: this.journal
     };
   }
 }

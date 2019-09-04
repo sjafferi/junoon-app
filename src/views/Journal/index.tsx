@@ -1,18 +1,23 @@
 import * as React from "react";
 import * as moment from "moment";
-import { pick } from "lodash";
-import { action, computed } from "mobx";
-import { observer } from "mobx-react";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { action } from "mobx";
+import { parse } from 'query-string';
+import { observer, inject } from "mobx-react";
+import { Switch, Route, Redirect, withRouter } from "react-router-dom";
 import { EditorState } from 'draft-js';
+import { Journal as JournalStore, RouterStore, User } from 'stores';
+import { LoginModal, Spinner } from 'ui'
 import styled from "styled-components";
 import Editor from "./Editor";
-// import Editor from 'editor/index';
 import Weekly from "./Weekly";
 import State from "./state";
+import Form from "./Form";
 
 interface IProps {
-
+  journal?: JournalStore;
+  user?: User;
+  router?: RouterStore;
+  history?: History;
 }
 
 interface IState {
@@ -22,28 +27,46 @@ interface IState {
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   width: 90.5vw;
   height: 100vh;
-  background: #ffefef;
+  background: white;
 `;
 
+@inject('user')
+@inject('router')
+@inject('journal')
+@(withRouter as any)
 @observer
 export default class Journal extends React.Component<IProps, IState> {
-  public journalState = new State();
+  public journalState: State;
+
+  constructor(props: IProps) {
+    super(props);
+    this.journalState = new State(props.journal!);
+  }
 
   get startOfWeek() {
     return moment().format("MMMD");
   }
 
+  get params() {
+    return parse(this.props.router!.location.search) || {};
+  }
+
   getEntry = (id: number) => {
-    return this.journalState.entries[id];
+    return this.props.journal!.entries[id];
+  }
+
+  getStartOfWeek = (date: string) => {
+    return moment(date, "MMMD").startOf('isoWeek').format("MMMD");
   }
 
   @action
   onChange = (id: string) => (editorState: EditorState, callback: () => void) => {
-    this.journalState.entries[id] = editorState;
-    this.journalState.assign({ entries: this.journalState.entries });
+    this.props.journal!.entries[id] = editorState;
+    this.props.journal!.assign({ entries: this.props.journal!.entries });
     if (callback) {
       callback();
     }
@@ -53,16 +76,19 @@ export default class Journal extends React.Component<IProps, IState> {
 
   }
 
-  onChangeWeek = (date: moment.Moment) => {
-    this.journalState.assign({ selectedWeek: date.startOf('isoWeek') });
-    return true;
-  }
-
   public render() {
+    const ready = this.props.user!.sessionLoaded && this.props.journal!.initialized;
+    if (!ready) {
+      return (
+        <Container>
+          <Spinner />
+        </Container>
+      )
+    }
+
     return (
       <Container>
         <Switch>
-          <Route exact path="/journal" render={() => <Redirect to="/journal/single" />} />
           <Route path="/journal/single/:id" render={({ match }) => (
             <Editor
               id={match.params.id}
@@ -72,16 +98,26 @@ export default class Journal extends React.Component<IProps, IState> {
             />
           )}
           />
-          <Route path="/journal/weekly/:start" render={({ match }) => this.onChangeWeek(moment(match.params.start, "MMMD")) && (
+          <Route path="/journal/weekly/:start" render={({ match }) => (
             <Weekly
-              onChange={this.onChange}
-              start={match.params.start}
+              history={this.props.history as any}
+              start={this.getStartOfWeek(match.params.start)}
               state={this.journalState}
             />
           )}
           />
+          <Route exact path="/journal" render={() => <Redirect to="/journal/weekly" />} />
           <Route exact path="/journal/weekly" render={() => <Redirect to={`/journal/weekly/${this.startOfWeek}`} />} />
         </Switch>
+        <Route path="/journal/weekly/:start/form/:date" render={({ match }) => (
+          <Form
+            history={this.props.history as any}
+            date={match.params.date}
+            state={this.journalState}
+          />
+        )}
+        />
+        {!this.props.user!.isLoggedIn && this.params.login && <LoginModal />}
       </Container>
     );
   }

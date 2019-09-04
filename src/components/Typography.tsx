@@ -1,12 +1,14 @@
-import styled from 'styled-components';
+import * as React from "react";
+import styled, { css } from 'styled-components';
 import { BREAKPOINTS } from 'consts';
 import styledBreakpoint from '@humblebee/styled-components-breakpoint';
+import contentEditable from "./ContentEditable";
 
 // Creates an object with breakpoint utility methods.
 export const breakpoint = styledBreakpoint(BREAKPOINTS);
 
-export const Headline = styled.h1`
-  font-family: 'Open Sans', serif;
+export const Header1 = styled.h1`
+  font-family: 'DM Sans', sans-serif;
   font-weight: 600;
   font-size: 2em;
   line-height: 2.5em;
@@ -15,6 +17,45 @@ export const Headline = styled.h1`
   ${breakpoint.down('m')`{
     text-align: center;
   }`}
+`
+
+export const Header2: any = styled.h2`
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: 1.5em;
+  line-height: 1em;
+  letter-spacing: 0.025em;
+  text-transform: capitalize;
+
+  ${(props: any) => props.center ? `
+    text-align: center;
+  ` : ''}
+`;;
+
+export const Header3: any = styled.h3`
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 1.25em;
+  line-height: 1.5em;
+  letter-spacing: 0.025em;
+  text-transform: capitalize;
+
+  ${(props: any) => props.center ? `
+    text-align: center;
+  ` : ''}
+`;
+
+export const Header4: any = styled.h4`
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 1em;
+  line-height: 1em;
+  letter-spacing: 0.025em;
+  text-transform: capitalize;
+
+  ${(props: any) => props.center ? `
+    text-align: center;
+  ` : ''}
 `;
 
 export const Subtitle: any = styled.p`
@@ -31,13 +72,56 @@ export const Subtitle: any = styled.p`
   ` : ''}
 `;
 
-export const Text: any = styled.p`
+export const TextStyle = css`
   text-align: left;
   font-size: 14px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.5em;
+  letter-spacing: 0.02em;
+`;
+
+export const Text: any = styled.p`
+  ${TextStyle}
 
   ${(props: any) => props.center ? `
     text-align: center;
   ` : ''}
 `;
+
+const EditableInputContainer = styled.input`
+  position: relative;
+  width: 200px;
+  height: 20px;
+  outline: none;
+  border: none;
+  margin-bottom: 10px !important;
+  
+  &.editing {
+    &:after {
+      width: 200px !important;
+    }
+  }
+
+  &:after {
+    content: '';
+    display: block;
+    left: 0;
+    top: 0;
+    width: 200px;
+    height: 4px;
+    transition: width 200ms ease-out;
+    border-bottom: 1px solid #FFC107;
+    background-color: #FFC107;
+  }
+`;
+
+class Input extends React.Component {
+  render() {
+    const { onSave, children, dangerouslySetInnerHTML, ...rest } = this.props as any;
+    return (
+      <EditableInputContainer {...rest} placeholder="Enter title (e.g calories consumed)" />
+    );
+  }
+}
+
+export const EditableInput = contentEditable(Input);

@@ -4,8 +4,9 @@ import {
   EditorState
 } from 'draft-js';
 import { Container, Date } from "./Editor.styles";
-import { DragHandler } from "../state";
 import MediumEditor from 'editor/index';
+
+export type DragHandler = (block: HTMLElement, x: number, y: number) => void;
 
 interface IEditorState {
   dragging: boolean;

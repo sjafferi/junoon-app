@@ -1,5 +1,6 @@
 import { EditorState } from 'draft-js';
 import { getCurrentBlock, addNewBlock, addNewBlockAt } from "editor/model";
+import { IForm, IMetric, ICreateMetric } from "stores";
 
 export function getBlockKey(block: Element) {
   return (block.getAttribute('data-offset-key') || '').split('-')[0];
@@ -56,4 +57,34 @@ export function addSnippet(snippet: Snippet[], editorState: EditorState) {
   });
 
   return editorState;
+}
+
+export function genMetricId(title: string) {
+  var hash = 0, i, chr;
+  if (title.length === 0) return hash.toString();
+  for (i = 0; i < title.length; i++) {
+    chr = title.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash.toString();
+}
+
+export function transformMetricToSchema(metrics: { type: string, value: ICreateMetric, id: string }[]) {
+  return metrics.reduce((acc: Record<string, IMetric["data"]>, { value, id }) => {
+    const { ui, ...rest } = value;
+    (acc as any)[id as any] = rest!;
+    return acc;
+  }, {}) as IForm["metricsSchema"];
+}
+
+export function transformMetricToUISchema(metrics: { type: string, value: ICreateMetric, id: string }[]) {
+  return metrics.reduce((acc: IForm["uiSchema"], { value, id }) => {
+    if (!value.ui) return acc;
+    acc![id] = Object.entries(value.ui).reduce((nested_acc: IMetric["ui"], [key, value]) => {
+      nested_acc![`ui:${key}`] = value;
+      return nested_acc;
+    }, {});
+    return acc;
+  }, {}) as IForm["uiSchema"];
 }

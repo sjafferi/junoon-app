@@ -180,7 +180,7 @@ class MediumDraftEditor extends React.Component {
     let newEditorState;
     if (currentBlock.getType().indexOf(Block.TODO) === 0) {
       const blockBefore = content.getBlockBefore(key);
-      let depth = blockBefore.getDepth() + 1;
+      let depth = Math.min(blockBefore.getDepth() + 1, currentBlock.getDepth() + 1);
       if (event.shiftKey) {
         depth = Math.max(0, currentBlock.getDepth() - 1);
       }
@@ -189,7 +189,7 @@ class MediumDraftEditor extends React.Component {
     } else {
       newEditorState = RichUtils.onTab(e, editorState, 4);
     }
-    if (newEditorState && newEditorState !== editorState) {
+    if (newEditorState) {
       this.onChange(newEditorState);
     }
   }
