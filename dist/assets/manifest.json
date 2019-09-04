@@ -1,7 +1,7 @@
 {
-  "name": "GrubGrab",
-  "short_name": "GrubGrab",
-  "description": "Grub Grab landing page",
+  "name": "Junoon",
+  "short_name": "Junoon",
+  "description": "Personal OKR tool",
   "dir": "auto",
   "lang": "en-US",
   "display": "standalone",
