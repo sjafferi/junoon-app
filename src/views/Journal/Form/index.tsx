@@ -190,7 +190,7 @@ const FIELDS: Record<string, ICreateMetric> = {
     type: "boolean"
   },
   "numeric": {
-    type: "integer",
+    type: "number",
     ui: {
       widget: "updown"
     }
@@ -296,7 +296,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
         "ui:options": { addable: true }
       },
       metrics: {
-        ...transformMetricToUISchema(this.state.addedMetrics)
+        ...transformMetricToUISchema(this.state.addedMetrics, formSchema)
       }
     };
     const schema = merge(uiSchema, { metrics: toJS(formSchema) });

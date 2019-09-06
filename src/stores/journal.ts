@@ -35,6 +35,7 @@ export interface IMetric {
   id?: string,
   data: FormProps<any>["schema"],
   ui?: Record<string, any>;
+  order?: number;
   showInForm?: boolean;
 }
 export interface ITask {
@@ -73,7 +74,7 @@ export class Journal {
   initialize = async () => {
     this.cleanEntries();
     if (this.rootStore.user.isLoggedIn) {
-      await this.fetchMetrics();
+      if (!this.metrics.length) await this.fetchMetrics();
     } else {
       this.generateEntries();
     }

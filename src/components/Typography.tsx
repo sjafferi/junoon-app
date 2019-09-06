@@ -90,12 +90,12 @@ export const Text: any = styled.p`
 
 const EditableInputContainer = styled.input`
   position: relative;
-  width: 200px;
+  width: 350px;
   height: 20px;
   outline: none;
   border: none;
   margin-bottom: 10px !important;
-  
+
   &.editing {
     &:after {
       width: 200px !important;

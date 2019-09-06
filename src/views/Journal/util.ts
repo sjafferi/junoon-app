@@ -1,4 +1,5 @@
 import { EditorState } from 'draft-js';
+import { UiSchema } from "react-jsonschema-form";
 import { getCurrentBlock, addNewBlock, addNewBlockAt } from "editor/model";
 import { IForm, IMetric, ICreateMetric } from "stores";
 
@@ -78,8 +79,10 @@ export function transformMetricToSchema(metrics: { type: string, value: ICreateM
   }, {}) as IForm["metricsSchema"];
 }
 
-export function transformMetricToUISchema(metrics: { type: string, value: ICreateMetric, id: string }[]) {
-  return metrics.reduce((acc: IForm["uiSchema"], { value, id }) => {
+export function transformMetricToUISchema(metrics: { type: string, value: ICreateMetric, id: string }[], currentSchema?: UiSchema) {
+  const ids: string[] = [];
+  const schema = metrics.reduce((acc: IForm["uiSchema"], { value, id }) => {
+    ids.push(id);
     if (!value.ui) return acc;
     acc![id] = Object.entries(value.ui).reduce((nested_acc: IMetric["ui"], [key, value]) => {
       nested_acc![`ui:${key}`] = value;
@@ -87,4 +90,15 @@ export function transformMetricToUISchema(metrics: { type: string, value: ICreat
     }, {});
     return acc;
   }, {}) as IForm["uiSchema"];
+
+  let order = [] as any;
+  if (currentSchema) {
+    order = currentSchema!["ui:order"]!;
+  }
+
+  schema!["ui:order"] = [...order, ...ids];
+
+  console.log("SCHEMA: ", schema);
+
+  return schema;
 }
