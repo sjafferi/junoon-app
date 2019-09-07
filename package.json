@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_ENV=development webpack-dev-server --progress --colors --hot",
     "server": "nodemon index.js",
-    "build-local": "NODE_ENV=production webpack",
+    "build-local": "rm -rf dist && NODE_ENV=production webpack",
     "start": "NODE_ENV=production node ./index.js",
     "upgrade-interactive": "npm-check --update"
   },

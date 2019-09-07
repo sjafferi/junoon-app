@@ -295,11 +295,10 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
 
   @action
   openForm = (dayOfWeek: number) => {
-    const regex = /(\/journal\/weekly\/[a-zA-Z]+[0-9]+$)/g;
+    const regex = /(\/weekly\/[a-zA-Z]+[0-9]+$)/g;
 
     if (regex.test(location.pathname)) {
       const formPath = `${location.pathname}/form/${this.start.add(dayOfWeek, 'd').format("MMMD")}`;
-      // const formPath = `/journal/weekly/form`;
       this.props.history!.push(formPath);
     }
   }

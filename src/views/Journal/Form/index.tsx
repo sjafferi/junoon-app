@@ -74,10 +74,6 @@ const Container = styled(Modal)`
       display: none;
     }
 
-    .field-radio-group {
-      margin-left: 15px;
-    }
-    
     #root_metrics__title {
       margin-bottom: 0;
     }
@@ -85,8 +81,11 @@ const Container = styled(Modal)`
       margin-top: 5px;
       text-align: center;
     }
-    #root_metrics .field-boolean > label {
-      display: none;
+    #root_metrics .field-boolean {
+      margin: 0;
+      > label {
+        display: none;
+      }
     }
   }
 
@@ -269,7 +268,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
   }
 
   close = () => {
-    this.props.history!.push(`/journal/weekly/${this.props.date}`);
+    this.props.history!.push(`/weekly/${this.props.date}`);
   }
 
   get journalState() {

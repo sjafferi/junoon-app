@@ -28,8 +28,10 @@ const DateRange = styled(Column)`
 `;
 
 const Title = styled.h3`
+  width: 130px;
+  text-align: center;
   color: ${Colors.darkLightGrey};
-`
+`;
 
 interface IHeaderProps {
   start: moment.Moment;
@@ -65,11 +67,11 @@ export default class Header extends React.Component<IHeaderProps, {}> {
           {this.props.LeftElement}
         </Column>
         <DateRange>
-          <Link to={`/journal/weekly/${this.prevWeek}`} >
+          <Link to={`/weekly/${this.prevWeek}`} >
             <i className="fa fa-chevron-left"></i>
           </Link>
           <Title>{this.week}</Title>
-          <Link to={`/journal/weekly/${this.nextWeek}`} >
+          <Link to={`/weekly/${this.nextWeek}`} >
             <i className="fa fa-chevron-right"></i>
           </Link>
         </DateRange>

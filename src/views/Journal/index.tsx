@@ -89,7 +89,7 @@ export default class Journal extends React.Component<IProps, IState> {
     return (
       <Container>
         <Switch>
-          <Route path="/journal/single/:id" render={({ match }) => (
+          <Route path="/single/:id" render={({ match }) => (
             <Editor
               id={match.params.id}
               onSave={this.onSingleSave}
@@ -98,7 +98,7 @@ export default class Journal extends React.Component<IProps, IState> {
             />
           )}
           />
-          <Route path="/journal/weekly/:start" render={({ match }) => (
+          <Route path="/weekly/:start" render={({ match }) => (
             <Weekly
               history={this.props.history as any}
               start={this.getStartOfWeek(match.params.start)}
@@ -106,10 +106,11 @@ export default class Journal extends React.Component<IProps, IState> {
             />
           )}
           />
-          <Route exact path="/journal" render={() => <Redirect to="/journal/weekly" />} />
-          <Route exact path="/journal/weekly" render={() => <Redirect to={`/journal/weekly/${this.startOfWeek}`} />} />
+          <Route exact path="/" render={() => <Redirect to="/weekly" />} />
+          <Route exact path="/weekly" render={() => <Redirect to={`/weekly/${this.startOfWeek}`} />} />
+          <Route render={() => <Redirect to={`/`} />} />
         </Switch>
-        <Route path="/journal/weekly/:start/form/:date" render={({ match }) => (
+        <Route path="/weekly/:start/form/:date" render={({ match }) => (
           <Form
             history={this.props.history as any}
             date={match.params.date}

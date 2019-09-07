@@ -18,8 +18,7 @@ class App extends React.Component<{ history?: History, router?: any, user?: User
     return (
       <Router>
         <Switch>
-          <Route exact path="/" render={() => <Redirect to="/journal" />} />
-          <Route path="/journal" component={Journal} />
+          <Route path="/" component={Journal} />
         </Switch>
       </Router>
     );
