@@ -1,5 +1,5 @@
 import { action, observable, computed, toJS } from 'mobx';
-import { assign, debounce, entries, range, merge, isElement, pick, pickBy } from 'lodash';
+import { assign, isEqual, entries, range, merge, isElement, pick, pickBy } from 'lodash';
 import * as moment from 'moment';
 import {
   EditorState, genKey, convertToRaw, convertFromRaw, RawDraftContentBlock
@@ -99,7 +99,7 @@ export class Journal {
     }
 
     if (response && !(response as IErrorResponse).error && !error) {
-      response = <ICreateMetric[]>response;
+      response = <IMetric[]>response;
       this.assign({ metrics: [...this.metrics, ...response] });
     }
 
@@ -113,13 +113,15 @@ export class Journal {
     }
     const params = ["title", "reason", "done"];
     const metrics = this.forms[id].metrics;
-    const finishedTasks = this.generateFormTasksFromBlocks(convertToRaw(this.entries[id]!.getCurrentContent()).blocks, true);
-    const tasks = [...((this.forms[id].tasks || []).map(task => toJS(task))), ...finishedTasks].sort((a, b) => a.order - b.order).map(
+    const unfinishedTasks = ((this.forms[id].tasks || []).map(task => toJS(task)));
+    const finishedTasks = this.generateFormTasksFromBlocks(convertToRaw(this.entries[id]!.getCurrentContent()).blocks, true)
+      .filter(({ title }) => unfinishedTasks.some((task) => isEqual(task.title, title)));
+    const tasks = [...unfinishedTasks, ...finishedTasks].sort((a, b) => a.order - b.order).map(
       task => ({ ...pickBy(task, (_, key) => params.includes(key)), done: !!task.done })) as ITask[];
     const payload = { metrics, tasks, date: this.forms[id].date }
     const response = await saveForm(payload as IForm);
     if (response && !(response as IErrorResponse).error) {
-      this.assign({ forms: { ...this.forms, [id]: response } });
+      this.assign({ forms: { ...this.forms, [id]: { ...response, submitted: true } } });
     }
     return response;
   }

@@ -95,10 +95,6 @@ export function transformMetricToUISchema(metrics: { type: string, value: ICreat
   if (currentSchema) {
     order = currentSchema!["ui:order"]!;
   }
-
   schema!["ui:order"] = [...order, ...ids];
-
-  console.log("SCHEMA: ", schema);
-
   return schema;
 }

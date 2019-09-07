@@ -1,6 +1,6 @@
 import { post, get } from './api';
 import { API_HOST } from 'consts';
-import { IEntry, IForm, ICreateMetric } from 'stores'
+import { IEntry, IForm, ICreateMetric, IMetric } from 'stores'
 
 export interface IErrorResponse {
   error: boolean;
@@ -27,7 +27,7 @@ export function saveForm(payload: IForm): Promise<IForm | IErrorResponse> {
   return post(`${API_HOST}/forms/save`, payload);
 }
 
-export function createMetrics(payload: ICreateMetric[]): Promise<ICreateMetric[] | IErrorResponse> {
+export function createMetrics(payload: ICreateMetric[]): Promise<IMetric[] | IErrorResponse> {
   return post(`${API_HOST}/forms/create-metrics`, payload);
 }
 

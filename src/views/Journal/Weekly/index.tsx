@@ -315,8 +315,9 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
       });
     }
     if (this.journalState.shouldShowFormLink(day)) {
+      const form = this.props.journal!.getFormForDay(day);
       actions.push({
-        title: `${this.props.journal!.getFormForDay(day) ? "Edit" : "Fill out"} form`,
+        title: `${form && form.submitted ? "Edit" : "Fill out"} form`,
         icon: 'fa-expand',
         className: 'form',
         onClick: () => this.openForm(dayOfWeek)
@@ -444,7 +445,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           week={this.week}
           open={this.state.showAnalyze}
           close={() => this.setState({ showAnalyze: false })}
-          analysis={toJS(this.journalStore.analyses[this.start.unix()])}
+          analysis={toJS(this.journalStore.analyses[this.journalStore.getKeyForEntityMap(this.start)])}
         />
         <ScrollUp />
       </Container>

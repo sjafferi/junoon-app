@@ -7,7 +7,7 @@ import { toJS } from 'mobx';
 import { History } from "history";
 import { inject, observer } from "mobx-react";
 import { IErrorResponse } from 'api';
-import { Journal, IForm, ICreateMetric, RouterStore } from 'stores';
+import { Journal, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
 import { Modal, EditableInput } from 'ui';
 import { FormStyles } from "./FormStyles";
 import { transformMetricToSchema, transformMetricToUISchema } from "../util";
@@ -331,8 +331,18 @@ export default class Form extends React.Component<IFormProps, IFormState> {
           ui: ui && JSON.stringify(ui),
           additionalSchemaOptions: rest && JSON.stringify(rest)
         }));
-      const { error: err } = await this.journalStore.createMetrics(payload as any);
+      const { response, error: err } = await this.journalStore.createMetrics(payload as any);
       error = err;
+      if (!error) {
+        addedMetrics.forEach(({ id, value }) => {
+          const temp = this.formData.metrics![id];
+          const metric = (response as IMetric[]).find(({ data }) => data.title === value.title);
+          if (metric && metric.id) {
+            this.formData.metrics![metric.id] = temp;
+            delete this.formData.metrics![id];
+          }
+        });
+      }
     }
     if (!error) {
       response = await this.journalStore.saveForm((this.formData || {}).id);

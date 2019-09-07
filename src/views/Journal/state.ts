@@ -25,7 +25,11 @@ export default class JournalState {
       const blocks = convertToRaw(editorState!.getCurrentContent()).blocks;
       const tasks = this.journalStore.generateFormTasksFromBlocks(blocks);
       if (tasks && tasks.length) {
-        form.tasks = merge(form.tasks, tasks);
+        form.tasks = tasks.map(task => {
+          const existingTask = form.tasks.find(({ title }) => task.title === title);
+          const reason = existingTask && existingTask.reason;
+          return { ...task, reason: reason || "" };
+        });
       } else {
         form.tasks = [];
       }

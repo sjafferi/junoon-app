@@ -8,8 +8,9 @@ import { updateDataOfBlock } from '../../model/';
 const SCALE = 25;
 
 export default class TodoBlock extends React.Component {
+  todoRef = React.createRef();
 
-  updateData = () => {
+  updateData = (e) => {
     const { block, blockProps } = this.props;
     const { setEditorState, getEditorState } = blockProps;
     const data = block.getData();
@@ -40,7 +41,7 @@ export default class TodoBlock extends React.Component {
             <i className="fa fa-bars"></i>
           </button>
           {placeholder && <span className="placeholder">{placeholder}</span>}
-          <input id={`input-${key}`} type="checkbox" checked={checked} onChange={this.updateData} />
+          <input ref={this.todoRef} id={`input-${key}`} type="checkbox" checked={checked} onChange={this.updateData} />
           <label htmlFor={`input-${key}`} className="control__indicator" />
           <EditorBlock {...this.props} />
         </div>

@@ -17,8 +17,12 @@ const Title = styled(Header4)`
 `;
 
 const Row = styled(RowUI)`
-  padding: 20px;
+  padding: 13px;
   font-size: 11px;
+  justify-content: space-between;
+  label {
+    text-align: left;
+  }
   span {
     margin-left: 15px;
     font-size: 12px;
