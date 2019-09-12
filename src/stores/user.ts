@@ -18,10 +18,6 @@ export class User {
   @observable public sessionLoaded = false;
 
   constructor(protected rootStore: RootStore) {
-    console.log("COOKIE: ", document.cookie);
-    window.onbeforeunload = () => {
-      console.log("before unload COOKIE: ", document.cookie);
-    }
     if (document.cookie) {
       this.validateUser();
     } else {
@@ -33,7 +29,6 @@ export class User {
   setUser = (user: IUser) => {
     this.user = user;
     this.rootStore.journal.initialize();
-    console.log("COOKIE: ", document.cookie);
   }
 
   @action
