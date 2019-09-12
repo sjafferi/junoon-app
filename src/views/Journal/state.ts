@@ -162,7 +162,7 @@ export default class JournalState {
   shouldShowFormLink = (day: moment.Moment) => {
     const form = this.journalStore.getFormForDay(day);
     const isEmpty = !(form && ((form.tasks && form.tasks.length) || (form.metrics && Object.keys(form.metrics || {}).length)))
-    return this.journalStore.isLoggedIn && !isEmpty && moment().isAfter(day)
+    return this.journalStore.isLoggedIn && !isEmpty && moment().add(1, 'd').isAfter(day)
   }
 
   public onNotify = (type: string, payload: any) => {

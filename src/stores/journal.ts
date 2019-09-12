@@ -1,13 +1,14 @@
 import { action, observable, computed, toJS } from 'mobx';
-import { assign, isEqual, entries, range, merge, isElement, pick, pickBy } from 'lodash';
+import { assign, isEqual, entries, range, isEmpty, pick, pickBy } from 'lodash';
 import * as moment from 'moment';
 import {
-  EditorState, genKey, convertToRaw, convertFromRaw, RawDraftContentBlock
+  EditorState, genKey, convertToRaw, convertFromRaw, RawDraftContentBlock, ContentBlock
 } from 'draft-js';
 import { FormProps, UiSchema } from "react-jsonschema-form";
 import { Snippets } from "editor/util/constants"
 import { RootStore } from './index';
 import { addSnippet } from "../views/Journal/util";
+import { getFirstBlock, updateDataOfBlock } from "editor/model";
 import { IErrorResponse, fetchEntries, updateEntries, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, saveForm } from "api"
 
 export type IAnalysis = {
@@ -174,11 +175,17 @@ export class Journal {
       const dates: moment.Moment[] = [];
       entries = entries.reduce((acc: { [key: string]: EditorState }, { id, date, content }: IEntry) => {
         let editorState = content ? EditorState.createWithContent(convertFromRaw(JSON.parse(content))) : EditorState.createEmpty();
-        const formattedDate = moment(date);
-        if (!content) {
+        const formattedDate = moment.utc(date);
+        const firstBlock = getFirstBlock(editorState) as ContentBlock;
+        if (!content || firstBlock && isEmpty(firstBlock.getText())) {
           const snippet = Snippets.DEFAULT;
-          snippet[0] = { ...snippet[0], placeholder: formattedDate.format("ddd D") };
-          editorState = addSnippet(snippet, editorState);
+          const placeholder = formattedDate.format("ddd D");
+          snippet[0] = { ...snippet[0], placeholder };
+          if (!content) {
+            editorState = addSnippet(snippet, editorState);
+          } else {
+            editorState = updateDataOfBlock(editorState, firstBlock, { placeholder });
+          }
         }
         dates.push(formattedDate);
         acc[id!] = editorState;
@@ -196,7 +203,7 @@ export class Journal {
         const id = this.getKeyForDay(moment(form.date));
         form.id = id;
         form.submitted = true;
-        form.date = moment(form.date).unix();
+        form.date = moment.utc(form.date).unix();
         acc[id] = form;
         return acc;
       }, {});

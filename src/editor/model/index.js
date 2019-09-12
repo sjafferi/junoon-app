@@ -18,6 +18,15 @@ export const getDefaultBlockData = (blockType, initialData = {}) => {
 /*
 Get currentBlock in the editorState.
 */
+export const getFirstBlock = (editorState) => {
+  const contentState = editorState.getCurrentContent();
+  const block = contentState.getBlockForKey(contentState.getFirstBlock().getKey());
+  return block;
+};
+
+/*
+Get currentBlock in the editorState.
+*/
 export const getCurrentBlock = (editorState) => {
   const selectionState = editorState.getSelection();
   const contentState = editorState.getCurrentContent();
@@ -105,7 +114,6 @@ export function removeBlockAt(editorState, blockKey) {
   var newEditorState = EditorState.push(editorState, newContentState, 'remove-range')
   return newEditorState
 }
-
 
 /*
 Update block-level metadata of the given `block` to the `newData`/
