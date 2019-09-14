@@ -1,5 +1,5 @@
 import { action, observable, computed, toJS } from 'mobx';
-import { assign, isEqual, entries, range, isEmpty, pick, pickBy } from 'lodash';
+import { assign, isEqual, entries, range, isEmpty, pick, pickBy, uniqBy } from 'lodash';
 import * as moment from 'moment';
 import {
   EditorState, genKey, convertToRaw, convertFromRaw, RawDraftContentBlock, ContentBlock
@@ -9,12 +9,18 @@ import { Snippets } from "editor/util/constants"
 import { RootStore } from './index';
 import { addSnippet } from "../views/Journal/util";
 import { getFirstBlock, updateDataOfBlock } from "editor/model";
-import { IErrorResponse, fetchEntries, updateEntries, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, saveForm } from "api"
+import { IErrorResponse, fetchEntries, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, saveForm } from "api"
 
-export type IAnalysis = {
+export type IQuery = {
+  id: string;
+  order: number;
+  metricId: string;
   label: string;
   value: string;
-}[];
+  function: string;
+};
+
+export type IAnalysis = IQuery[];
 
 export interface IEntry {
   id?: string,
@@ -128,6 +134,17 @@ export class Journal {
   }
 
   @action
+  updateQuery = async (payload: Partial<IQuery>) => {
+    let response
+    try {
+      response = await updateQuery(payload);
+    } catch (e) {
+
+    }
+    return response;
+  }
+
+  @action
   fetchAnalysis = async (day: moment.Moment) => {
     const start = day.clone().startOf('isoWeek').utc().startOf('day').unix();
     const end = day.clone().endOf('isoWeek').utc().unix();
@@ -140,7 +157,8 @@ export class Journal {
     }
 
     if (analyses && !analyses.error) {
-      this.assign({ analyses: { ...this.analyses, [start]: { ...this.analyses[start], ...analyses } } });
+      const updated = uniqBy([...analyses, ...(this.analyses[start] || [])].sort((a, b) => a.order - b.order), 'metricId');
+      this.assign({ analyses: { ...this.analyses, [start]: updated } });
     }
   }
 

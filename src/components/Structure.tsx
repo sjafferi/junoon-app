@@ -1,5 +1,7 @@
 import styled, { css } from 'styled-components';
 import { breakpoint } from './Typography';
+import Primary from "./Primary";
+import { Colors } from "./colors";
 
 export const Section: any = styled.div`
   width: 100%;
@@ -55,4 +57,4 @@ export const ButtonStyle = css`
   ${breakpoint.down('xs')`{
     width: 80%;
   }`}
-`
+`;

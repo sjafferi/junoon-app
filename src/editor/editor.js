@@ -9,6 +9,10 @@ import {
   genKey,
   Modifier,
 } from 'draft-js';
+import {
+  registerCopySource,
+  handleDraftEditorPastedText,
+} from "draftjs-conductor";
 import * as isSoftNewlineEvent from 'draft-js/lib/isSoftNewlineEvent';
 import { OrderedMap } from 'immutable';
 import AddButton from './components/addbutton';
@@ -153,6 +157,13 @@ class MediumDraftEditor extends React.Component {
     if (this.props.autoFocus) this.focus();
     if (this._editorNode && this._editorNode.editor) {
       this.rootRow = this._editorNode.editor.closest(".row");
+    }
+    this.copySource = registerCopySource(this._editorNode);
+  }
+
+  componentWillUnmount() {
+    if (this.copySource) {
+      this.copySource.unregister();
     }
   }
 
@@ -630,7 +641,15 @@ class MediumDraftEditor extends React.Component {
     if (this.props.handlePastedText && this.props.handlePastedText(text, html, es) === HANDLED) {
       return HANDLED;
     }
-    return NOT_HANDLED;
+
+    let newState = handleDraftEditorPastedText(html, es);
+
+    if (newState) {
+      this.onChange(newState);
+      return true;
+    }
+
+    return false
   };
 
   /*

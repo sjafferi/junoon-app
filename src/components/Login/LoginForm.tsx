@@ -12,12 +12,6 @@ const Tabs = styled.div`
   display: flex;
   position: absolute;
   top: 30px;
-  button:first-child {
-    border-right: none !important;
-  }
-  button + button {
-    border-left: none !important;
-  }
 `;
 
 const Tab: any = styled(Primary)`

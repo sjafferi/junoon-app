@@ -7,7 +7,7 @@ import { debounce } from "lodash";
 import { action, toJS } from "mobx";
 import { inject, observer } from "mobx-react";
 import { ToastContainer, toast } from 'react-toastify';
-import { Viewport, RouterStore, Journal, User } from 'stores';
+import { Viewport, RouterStore, Journal, User, IQuery } from 'stores';
 import { History } from "history";
 import { Colors, Primary } from 'ui';
 import { EditorState } from 'draft-js';
@@ -339,6 +339,14 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   @action
+  onQueryChange = async (payload: Partial<IQuery>) => {
+    const response = await this.journalStore.updateQuery(payload);
+    if (response && !(response as any).error) {
+      this.journalStore.fetchAnalysis(this.start);
+    }
+  }
+
+  @action
   onChangeWeek = (date: moment.Moment) => {
     this.journalState.assign({ selectedWeek: date.startOf('isoWeek') });
     this.journalState.updateEntriesForWeek();
@@ -445,6 +453,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           open={this.state.showAnalyze}
           close={() => this.setState({ showAnalyze: false })}
           analysis={toJS(this.journalStore.analyses[this.journalStore.getKeyForEntityMap(this.start)])}
+          onQueryChange={this.onQueryChange}
         />
         <ScrollUp />
       </Container>

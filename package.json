@@ -58,6 +58,7 @@
     "@types/react-scroll": "^1.5.4",
     "@types/react-toastify": "^4.0.2",
     "draft-js": "^0.10.5",
+    "draftjs-conductor": "^1.0.0",
     "express": "^4.16.4",
     "flexboxgrid": "^6.3.1",
     "immutable": "^3.7.6",

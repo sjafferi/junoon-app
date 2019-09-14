@@ -1,6 +1,6 @@
-import { post, get } from './api';
+import { post, put, get } from './api';
 import { API_HOST } from 'consts';
-import { IEntry, IForm, ICreateMetric, IMetric } from 'stores'
+import { IEntry, IForm, ICreateMetric, IMetric, IQuery } from 'stores'
 
 export interface IErrorResponse {
   error: boolean;
@@ -17,6 +17,10 @@ export function fetchMetrics() {
 
 export function fetchAnalysis(start: number, end: number) {
   return get(`${API_HOST}/queries/fetch-analysis/${start}/${end}`);
+}
+
+export function updateQuery(payload: Partial<IQuery>): Promise<IQuery | IErrorResponse> {
+  return put(`${API_HOST}/queries`, payload);
 }
 
 export function fetchForms(start: number, end: number) {
