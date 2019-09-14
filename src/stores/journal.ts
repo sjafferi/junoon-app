@@ -18,6 +18,7 @@ export type IQuery = {
   label: string;
   value: string;
   function: string;
+  functions: string[];
 };
 
 export type IAnalysis = IQuery[];

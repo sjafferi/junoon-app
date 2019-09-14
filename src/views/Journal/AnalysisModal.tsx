@@ -75,8 +75,6 @@ const Function = styled(Primary)`
   min-width: 0;
 `;
 
-const functions = ["sum", "average"];
-
 @observer
 export default class AnalysisMdal extends React.Component<IProps> {
   constructor(props: any) {
@@ -94,11 +92,11 @@ export default class AnalysisMdal extends React.Component<IProps> {
   }
 
   renderAnalysis = (query: IQuery, index: number) => {
-    const { value, label, id, metricId } = query;
+    const { value, label, id, metricId, functions } = query;
     return (
       <Row key={index}>
         <FunctionsContainer>
-          {functions.map((fn, index) =>
+          {functions.length > 1 && functions.map((fn, index) =>
             <Function
               key={index}
               className={`${query.function === fn ? 'active' : ''}`}
