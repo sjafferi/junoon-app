@@ -16,6 +16,7 @@ const Container = styled(Modal)`
   padding: 92px;
   padding-top: 30px;
   text-align: center;
+  min-width: 500px;
 `;
 
 const Title = styled(Header4)`
@@ -47,7 +48,7 @@ const Row = styled(RowUI)`
 const FunctionsContainer = styled.div`
   position: absolute;
   top: 28%;
-  left: -42%;
+  left: -85px;
   border: none;
   opacity: 0;
   > button:first-child {

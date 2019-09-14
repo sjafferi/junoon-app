@@ -369,6 +369,7 @@ var r=/input|select|textarea|button|object/;function i(e){var t=e.offsetWidth<=0
   padding: 92px;
   padding-top: 30px;
   text-align: center;
+  min-width: 500px;
 `,yn=Object(H.default)(q)`
   padding: 0 25px;
   padding-bottom: 6px;
@@ -394,7 +395,7 @@ var r=/input|select|textarea|button|object/;function i(e){var t=e.offsetWidth<=0
 `,vn=H.default.div`
   position: absolute;
   top: 28%;
-  left: -42%;
+  left: -85px;
   border: none;
   opacity: 0;
   > button:first-child {
