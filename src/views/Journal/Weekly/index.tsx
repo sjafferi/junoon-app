@@ -84,6 +84,13 @@ const Row: any = styled.div`
   flex-grow: 1 !important;
   width: ${(props: any) => props.width}px;
   height: ${(props: any) => props.height}px;
+  &.mobile-row {
+    flex-wrap: initial !important;
+    scroll-snap-type: x mandatory;
+    > div {
+      scroll-snap-align: center;
+    }
+  }
 `;
 
 const ResizableRow: any = styled(Resizable)`
@@ -102,6 +109,7 @@ const Column: any = styled.div`
   min-height: 100%;
   height: fit-content;
   border-left: 1px solid ${Colors.lightGrey};
+  min-width: ${(props: any) => props.width}px;
   width: ${(props: any) => props.width}px;
   padding-bottom: 70px;
 `;
@@ -230,6 +238,16 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     if (this.props.start !== nextProps.start) {
       this.onChangeWeek(moment(nextProps.start, "MMMD"));
     }
+  }
+
+  componentDidMount() {
+    const prevHash = location.hash;
+    location.hash = "";
+    setTimeout(() => {
+      if (this.start.isSameOrAfter(moment().startOf('isoWeek'))) {
+        location.hash = prevHash || ("#" + moment().format("MMMD"));
+      }
+    }, 500)
   }
 
   get viewport() {
@@ -373,11 +391,12 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   debouncedUpdateFormState = debounce(this.journalState.updateFormState, 500, { leading: true, trailing: false });
 
   renderEntries = (start: number, end: number, numColumns = 4) => {
-    const width = this.columnWidth / (numColumns / 4);
+    const width = this.viewport!.isMobile ? this.columnWidth * 3.05 : this.columnWidth / (numColumns / 4);
     return this.keys.map((key, index) => ({ key, index })).filter((key, index) => index >= start && index < end).map(({ key, index }) => {
       const actions = this.getActionsForEntry(index);
+      const day = this.start.add(index, 'd');
       return (
-        <Column className={`col-sm-${numColumns} col-md-${numColumns} col-lg-${numColumns} editor-block`} key={key} width={width}>
+        <Column id={this.viewport!.isMobile ? day.format("MMMD") : undefined} className={`editor-block`} key={key} width={width}>
           {actions.length ? <ActionsContainer> {actions.map((...props) => <Action key={props[1]} {...(props[0])} />)} </ActionsContainer> : null}
           <Editor
             id={key}
@@ -415,10 +434,10 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     );
   }
 
-  render() {
+  renderDesktop = () => {
     const width = this.columnWidth * 3.05;
     return (
-      <Container>
+      <>
         <Header
           LeftElement={this.journalStore.isLoggedIn && <Autosave saving={this.state.loading} save={this.onSave} />}
           RightElement={this.renderHeaderRight()}
@@ -438,6 +457,26 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           {!this.state.showSunday && this.renderEntries(5, 6)}
           {this.state.showSunday && this.renderEntries(6, 7)}
         </Row>
+      </>
+    );
+  }
+
+  renderMobile = () => {
+    const width = this.columnWidth * 3.1;
+    return (
+      <>
+        <Row className="mobile-row row" width={width} height={this.rowHeight * 2}>
+          {this.renderEntries(0, 7, 1)}
+        </Row>
+      </>
+    )
+  }
+
+  render() {
+    return (
+      <Container>
+        {!this.viewport.isMobile && this.renderDesktop()}
+        {this.viewport.isMobile && this.renderMobile()}
         <ToastContainer
           position="bottom-left"
           autoClose={3000}
