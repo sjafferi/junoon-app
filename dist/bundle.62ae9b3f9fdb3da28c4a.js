@@ -435,7 +435,7 @@ var r=/input|select|textarea|button|object/;function i(e){var t=e.offsetWidth<=0
     color: #7b7b7b;
   }
 `,On=H.default.h3`
-  width: 130px;
+  width: 135px;
   text-align: center;
   color: ${z};
 `;class Cn extends i.Component{get prevWeek(){return this.props.start.clone().subtract(1,"w").format("MMMD")}get nextWeek(){return this.props.start.clone().add(1,"w").format("MMMD")}get week(){const e=this.props.start.startOf("isoWeek"),t=this.props.start.clone().endOf("isoWeek");let n=e.format("MMM D"),r=t.format("D");return e.month()!==t.month()&&(r=t.format("MMM D")),`${n} - ${r}`}render(){return i.createElement(Ln,null,i.createElement(Tn,null,this.props.LeftElement),i.createElement(Dn,null,i.createElement(En,{to:`/weekly/${this.prevWeek}`},i.createElement("i",{className:"fa fa-chevron-left"})),i.createElement(On,null,this.week),i.createElement(En,{to:`/weekly/${this.nextWeek}`},i.createElement("i",{className:"fa fa-chevron-right"}))),i.createElement(Tn,null,this.props.RightElement))}}n(717),n(719);const{useEffect:jn}=i,An=H.default.div`
