@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as moment from 'moment';
 import styled from 'styled-components';
-import { LineChart } from "ui";
+import { LineChart, PieChart } from "ui";
 import { IMetric } from "stores";
 import { IRow, IAverage } from "./index";
 import { convertToLocal } from "../../util";
@@ -26,11 +26,7 @@ function getChartType(metric: IMetric) {
       break;
     }
     case "number": {
-      if (metric.ui && metric.ui.widget === "radio") {
-        chartType = "bar";
-      } else {
-        chartType = "line";
-      }
+      chartType = "line";
       break;
     }
   }
@@ -43,7 +39,7 @@ export default class Graphs extends React.Component<IGraphsProps> {
     if (metric) {
       const averages = this.props.averages[metric.id!];
       const type = getChartType(metric);
-      if (type) {
+      if (type === "line") {
         const labels: string[] = [], timestamps: Date[] = [];
         const data: { x: Date, y: number }[] = Object.entries(rest).filter(([timestamp, value]) => {
           timestamps.push(convertToLocal(moment.unix(parseInt(timestamp))).toDate());
@@ -59,9 +55,13 @@ export default class Graphs extends React.Component<IGraphsProps> {
             }
           }
         }
-        console.log(`${title} average: `, averageData)
-        console.log(`${title} data: `, data)
         return data.length > 0 && <LineChart labels={labels} data={data} averages={averageData} key={id as string} title={title as string} />
+      }
+      if (type === "pie") {
+        const yesLength = Object.entries(rest).filter(([_, value]) => value === "true").length;
+        const dataLength = Object.keys(rest).length;
+        const labels = ["Yes", "No"];
+        return dataLength > 0 && <PieChart labels={labels} data={[yesLength, dataLength - yesLength]} key={id as string} title={title as string} />
       }
     }
   }
