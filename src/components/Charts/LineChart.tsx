@@ -1,11 +1,13 @@
 import * as React from 'react';
+import * as moment from 'moment';
 import * as Chart from "chart.js";
 import styled from 'styled-components';
 import { Header3 } from 'ui';
+import { convertToLocal } from "views/Journal/util";
 
 export interface IChartProps {
-  data: { x: number, y: number }[];
-  averages?: { x: number, y: number }[];
+  data: { x: number | Date, y: number }[];
+  averages?: { x: number | Date, y: number }[];
   labels: string[];
   title: string;
   key: string;
@@ -49,25 +51,29 @@ export default class LineChart extends React.Component<IChartProps> {
 
     if (typeof this.myLineChart !== "undefined") this.myLineChart.destroy();
 
-    const datasets = [
+    const datasets: Chart.ChartDataSets[] = [
       {
         label: title,
         data: data,
         fill: false,
-        borderColor: "#f0a600"
+        borderColor: "#f0a600",
+        showLine: true,
       }
     ]
     if (averages) {
       datasets.push({
-        label: "National Average",
+        label: "Average",
         data: averages,
         fill: false,
-        borderColor: "#E0E0E0"
+        showLine: true,
+        borderColor: "#E0E0E0",
+        pointRadius: 0,
+        borderWidth: 3
       });
     }
 
     this.myLineChart = new Chart(myChartRef!, {
-      type: "line",
+      type: "scatter",
       data: {
         labels,
         datasets
@@ -77,9 +83,24 @@ export default class LineChart extends React.Component<IChartProps> {
         maintainAspectRatio: false,
         scales: {
           xAxes: [{
+            type: 'time',
+            time: {
+              unit: 'day',
+              unitStepSize: 1
+            },
             gridLines: {
               display: true,
               drawBorder: true
+            },
+            ticks: {
+              min: 5,
+              max: 7,
+              callback: (label, index, labels) => {
+                const date = moment(label, "MMM D");
+                if (date.isValid())
+                  return date.format("ddd D");
+                return "";
+              }
             }
           }],
           yAxes: [{

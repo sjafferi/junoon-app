@@ -44,13 +44,12 @@ export default class Graphs extends React.Component<IGraphsProps> {
       const averages = this.props.averages[metric.id!];
       const type = getChartType(metric);
       if (type) {
-        const labels: string[] = [], timestamps: number[] = [];
-        const data: { x: number, y: number }[] = Object.entries(rest).filter(([timestamp, value]) => {
-          timestamps.push(parseInt(timestamp));
-          labels.push(convertToLocal(moment.unix(parseInt(timestamp))).format("ddd D"));
+        const labels: string[] = [], timestamps: Date[] = [];
+        const data: { x: Date, y: number }[] = Object.entries(rest).filter(([timestamp, value]) => {
+          timestamps.push(convertToLocal(moment.unix(parseInt(timestamp))).toDate());
           return !isNaN(parseFloat(value as any));
-        }).map(([timestamp, value]) => ({ x: parseInt(timestamp), y: parseFloat(value as any) }));
-        const averageData: { x: number, y: number }[] = []
+        }).map(([timestamp, value]) => ({ x: convertToLocal(moment.unix(parseInt(timestamp))).toDate(), y: parseFloat(value as any) }));
+        const averageData: { x: Date, y: number }[] = []
         if (Array.isArray(averages)) {
           for (let i = 0; i < averages.length; i++) {
             const { value } = averages[i];
