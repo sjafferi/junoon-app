@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <title><%= htmlWebpackPlugin.options.title %></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&family=Open+Sans:700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
   <style>
@@ -48,6 +49,13 @@
       z-index: 20;
     }
   </style>
+  <script>
+    document.addEventListener("mousewheel", function (event) {
+      if (document.activeElement.type === "number") {
+        document.activeElement.blur();
+      }
+    });
+  </script>
 </head>
 
 <body>

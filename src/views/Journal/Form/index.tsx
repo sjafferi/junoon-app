@@ -11,7 +11,7 @@ import { Journal, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
 import { Modal, EditableInput } from 'ui';
 import { FormStyles } from "./FormStyles";
 import { transformMetricToSchema, transformMetricToUISchema } from "../util";
-
+import { BASE_ROUTE } from "../index";
 import State from "../state";
 
 interface IFormProps {
@@ -38,7 +38,7 @@ const Container = styled(Modal)`
       text-align: center;
     }
 
-    font-size: 12px;
+    font-size: 14px;
     line-height: 21px;
 
     .form-control {
@@ -61,7 +61,7 @@ const Container = styled(Modal)`
     }
 
     legend {
-      font-size: 18px;
+      font-size: 20px;
       text-align: center;
       border: none;
     }
@@ -87,6 +87,22 @@ const Container = styled(Modal)`
         display: none;
       }
     }
+    #root_metrics {
+      .form-group {
+        margin-bottom: 30px !important;
+      }
+    }
+  }
+
+  .form .checkbox {
+    margin-top: 12px;
+    margin-bottom: 25px;
+  }
+
+  input.form-control {
+    border: none;
+    box-shadow: none;
+    border-bottom: 0.5px dashed black;
   }
 
   .form-group {
@@ -100,7 +116,7 @@ const Container = styled(Modal)`
   }
 
   .tasks .form-group {
-    margin-bottom: 0;
+    // margin-bottom: 0;
   }
 
   .hidden-title label.control-label {
@@ -134,6 +150,14 @@ const Container = styled(Modal)`
       width: 110px;
     }
   }
+  
+  .tasks .field-boolean {
+    display: none;
+  }
+
+  // .checkbox > label {
+  //   display: inline-block;
+  // }
 `;
 
 const AddMetricsContainer = styled.div`
@@ -268,7 +292,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
   }
 
   close = () => {
-    this.props.history!.push(`/weekly/${this.props.date}`);
+    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}`);
   }
 
   get journalState() {

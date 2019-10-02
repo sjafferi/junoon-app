@@ -54,7 +54,7 @@ export default class JournalState {
       form.uiSchema!["ui:order"] = this.journalStore.metrics.map(({ id }) => id!);
     }
     form.id = key;
-    form.date = day.unix();
+    form.date = day.utc().unix();
 
     this.journalStore.forms[key] = form;
   }

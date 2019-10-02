@@ -1,3 +1,4 @@
+import * as moment from "moment";
 import { EditorState } from 'draft-js';
 import { UiSchema } from "react-jsonschema-form";
 import { getCurrentBlock, addNewBlock, addNewBlockAt } from "editor/model";
@@ -98,3 +99,20 @@ export function transformMetricToUISchema(metrics: { type: string, value: ICreat
   schema!["ui:order"] = [...order, ...ids];
   return schema;
 }
+
+export function convertToUTC(date: moment.Moment) {
+  return date.clone().add((moment().utcOffset()), 'm').utc();
+}
+
+export function convertToLocal(date: moment.Moment) {
+  return date.clone().add((-moment().utcOffset()), 'm').local();
+}
+
+export const groupBy = (key: string) => (array: any[]) =>
+  array.reduce(
+    (objectsByKeyValue, obj) => ({
+      ...objectsByKeyValue,
+      [obj[key]]: (objectsByKeyValue[obj[key]] || []).concat(obj)
+    }),
+    {}
+  );

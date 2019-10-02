@@ -34,6 +34,8 @@ const Container = styled.div`
   background: white;
 `;
 
+export const BASE_ROUTE = `agenda`;
+
 @inject('user')
 @inject('router')
 @inject('journal')
@@ -98,7 +100,7 @@ export default class Journal extends React.Component<IProps, IState> {
             />
           )}
           />
-          <Route path="/weekly/:start" render={({ match }) => (
+          <Route path={`/${BASE_ROUTE}/:start`} render={({ match }) => (
             <Weekly
               history={this.props.history as any}
               start={this.getStartOfWeek(match.params.start)}
@@ -106,11 +108,11 @@ export default class Journal extends React.Component<IProps, IState> {
             />
           )}
           />
-          <Route exact path="/" render={() => <Redirect to="/weekly" />} />
-          <Route exact path="/weekly" render={() => <Redirect to={`/weekly/${this.startOfWeek}`} />} />
+          <Route exact path="/" render={() => <Redirect to={`/${BASE_ROUTE}`} />} />
+          <Route exact path={`/${BASE_ROUTE}`} render={() => <Redirect to={`/${BASE_ROUTE}/${this.startOfWeek}`} />} />
           <Route render={() => <Redirect to={`/`} />} />
         </Switch>
-        <Route path="/weekly/:start/form/:date" render={({ match }) => (
+        <Route path={`/${BASE_ROUTE}/:start/form/:date`} render={({ match }) => (
           <Form
             history={this.props.history as any}
             date={match.params.date}

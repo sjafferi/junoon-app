@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 import { BREAKPOINTS } from 'consts';
 import styledBreakpoint from '@humblebee/styled-components-breakpoint';
 import contentEditable from "./ContentEditable";
-
+import { Colors } from "./colors"
 // Creates an object with breakpoint utility methods.
 export const breakpoint = styledBreakpoint(BREAKPOINTS);
 
@@ -86,6 +86,20 @@ export const Text: any = styled.p`
   ${(props: any) => props.center ? `
     text-align: center;
   ` : ''}
+`;
+
+export const HeaderNavigationText = styled(Header2)`
+  cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: bold;
+  font-size: 1.5em;
+  letter-spacing: 1.25px;
+  margin: 0;
+  margin-top: 5px;
+  color: #c5c5c5;
+  &.active {
+    color: #929292;
+  }
 `;
 
 const EditableInputContainer = styled.input`

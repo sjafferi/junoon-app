@@ -44,7 +44,7 @@ export class Viewport {
 
   @computed
   get isMobile() {
-    return this.width < BREAKPOINTS.m;
+    return this.width < BREAKPOINTS.sss;
   }
 
   @computed

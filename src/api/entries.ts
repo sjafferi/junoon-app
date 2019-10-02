@@ -1,6 +1,6 @@
 import { post, put, get } from './api';
 import { API_HOST } from 'consts';
-import { IEntry, IForm, ICreateMetric, IMetric, IQuery } from 'stores'
+import { IEntry, IForm, ICreateMetric, IMetric, IMetricValue, IQuery } from 'stores'
 
 export interface IErrorResponse {
   error: boolean;
@@ -11,8 +11,12 @@ export function fetchEntries(start: number, end: number) {
   return post(`${API_HOST}/entries/fetch-or-create-many`, { start, end });
 }
 
-export function fetchMetrics() {
-  return get(`${API_HOST}/forms/fetch-metrics`);
+export function updateEntries(payload: IEntry[]) {
+  return post(`${API_HOST}/entries/save-many`, payload);
+}
+
+export function createEntries(payload: IEntry[]) {
+  return post(`${API_HOST}/entries/create-many`, payload);
 }
 
 export function fetchAnalysis(start: number, end: number) {
@@ -21,6 +25,18 @@ export function fetchAnalysis(start: number, end: number) {
 
 export function updateQuery(payload: Partial<IQuery>): Promise<IQuery | IErrorResponse> {
   return put(`${API_HOST}/queries`, payload);
+}
+
+export function fetchMetrics() {
+  return get(`${API_HOST}/forms/fetch-metrics`);
+}
+
+export function fetchMetricValues(start: number, end: number): Promise<IMetricValue[] | IErrorResponse> {
+  return get(`${API_HOST}/forms/fetch-metric-values/${start}/${end}`);
+}
+
+export function fetchMetricAverage(start: number, end: number): Promise<IMetricValue[] | IErrorResponse> {
+  return get(`${API_HOST}/forms/fetch-metric-average/?start=${start}&end=${end}`);
 }
 
 export function fetchForms(start: number, end: number) {
@@ -33,12 +49,4 @@ export function saveForm(payload: IForm): Promise<IForm | IErrorResponse> {
 
 export function createMetrics(payload: ICreateMetric[]): Promise<IMetric[] | IErrorResponse> {
   return post(`${API_HOST}/forms/create-metrics`, payload);
-}
-
-export function updateEntries(payload: IEntry[]) {
-  return post(`${API_HOST}/entries/save-many`, payload);
-}
-
-export function createEntries(payload: IEntry[]) {
-  return post(`${API_HOST}/entries/create-many`, payload);
 }

@@ -9,7 +9,7 @@ import { Snippets } from "editor/util/constants"
 import { RootStore } from './index';
 import { addSnippet } from "../views/Journal/util";
 import { getFirstBlock, updateDataOfBlock } from "editor/model";
-import { IErrorResponse, fetchEntries, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, saveForm } from "api"
+import { IErrorResponse, fetchEntries, fetchMetricValues, fetchMetricAverage, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, saveForm } from "api"
 
 export type IQuery = {
   id: string;
@@ -46,6 +46,12 @@ export interface IMetric {
   order?: number;
   showInForm?: boolean;
 }
+export interface IMetricValue {
+  date: moment.Moment;
+  value: string;
+  metricId: string;
+  formId: string;
+};
 export interface ITask {
   title: string;
   reason?: string;
@@ -71,6 +77,7 @@ export class Journal {
   @observable public analyses: Record<string, IAnalysis> = {};
   @observable public forms: { [key: string]: IForm } = {};
   @observable public metrics: IMetric[] = [];
+  @observable public metricValues: IMetricValue[] = [];
   @observable public initialized = false;
   public observers: any[] = [];
   public entityMap: { [key: number]: { id: string } } = {};
@@ -175,6 +182,36 @@ export class Journal {
     if (metrics && !metrics.error) {
       this.assign({ metrics });
     }
+  }
+
+  @action
+  fetchMetricValues = async (start: moment.Moment, end: moment.Moment) => {
+    let response;
+    try {
+      const startDate = start.clone().utc().startOf('day');
+      const endDate = start.clone().utc().endOf('isoWeek')
+      response = await fetchMetricValues(startDate.unix(), endDate.unix());
+    } catch (e) {
+
+    }
+
+    if (response && !(response as IErrorResponse).error) {
+      response = (<IMetricValue[]>response).map(({ date, ...rest }) => ({ ...rest, date: moment(date) }));
+      response = uniqBy([...this.metricValues, ...response], ({ metricId, formId }) => metricId + formId).sort((a: IMetricValue, b: IMetricValue) => a.date.unix() - b.date.unix());
+      this.assign({ metricValues: response });
+    }
+  }
+
+  @action
+  fetchMetricAverages = async (start: moment.Moment, end: moment.Moment) => {
+    let response;
+    try {
+      response = await fetchMetricAverage(start.unix(), end.unix());
+    } catch (e) {
+
+    }
+
+    return response;
   }
 
   @action

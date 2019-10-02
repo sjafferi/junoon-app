@@ -5,8 +5,6 @@ import { EditorBlock } from 'draft-js';
 
 import { updateDataOfBlock } from '../../model/';
 
-const SCALE = 25;
-
 export default class TodoBlock extends React.Component {
   todoRef = React.createRef();
 
@@ -28,7 +26,6 @@ export default class TodoBlock extends React.Component {
     const textLength = this.props.block.getLength();
     const checked = data.get('checked') === true;
     const placeholder = textLength === 0 && data.get('placeholder');
-
     return (
       <Draggable
         handle=".drag-handle"

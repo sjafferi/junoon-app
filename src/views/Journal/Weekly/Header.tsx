@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as moment from 'moment';
-import { Link } from 'react-router-dom';
 import styled from "styled-components";
-
+import { Link } from 'react-router-dom';
 import { Colors } from 'ui';
+import { BASE_ROUTE } from "../index";
 
 const Container = styled.div`
   width: 91vw;
@@ -20,7 +20,11 @@ const Column = styled.div`
 `;
 
 const DateRange = styled(Column)`
-  margin-left: 120px;
+  margin-left: 9%;
+  &.logged-in {
+    margin-left: 0;
+    margin-right: 16%;
+  }
   a {
     padding: 0 20px;
     color: #7b7b7b;
@@ -37,6 +41,7 @@ interface IHeaderProps {
   start: moment.Moment;
   LeftElement: React.ReactNode;
   RightElement: React.ReactNode;
+  isLoggedIn: boolean;
 }
 
 export default class Header extends React.Component<IHeaderProps, {}> {
@@ -66,12 +71,12 @@ export default class Header extends React.Component<IHeaderProps, {}> {
         <Column>
           {this.props.LeftElement}
         </Column>
-        <DateRange>
-          <Link to={`/weekly/${this.prevWeek}`} >
+        <DateRange className={`${this.props.isLoggedIn ? "logged-in" : ""}`}>
+          <Link to={`/${BASE_ROUTE}/${this.prevWeek}`} >
             <i className="fa fa-chevron-left"></i>
           </Link>
           <Title>{this.week}</Title>
-          <Link to={`/weekly/${this.nextWeek}`} >
+          <Link to={`/${BASE_ROUTE}/${this.nextWeek}`} >
             <i className="fa fa-chevron-right"></i>
           </Link>
         </DateRange>
