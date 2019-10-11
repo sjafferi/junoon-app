@@ -26,7 +26,8 @@ interface ICRUDTableState {
 }
 
 const Container = styled(Modal)`
-  min-width: 65%;
+  width: 65%;
+  max-width: 720px;
   min-height: 60vh;
   max-height: 95%;
   transform: translate(-58%,-50%);
@@ -178,6 +179,7 @@ const Row = styled.div`
 const ActionButton = styled(Primary)`
   width: 40%;
   margin: 10px;
+  max-width: 250px;
 `;
 
 const selectStyles: any = {
@@ -404,7 +406,7 @@ export default class CRUDTable extends React.Component<ICRUDTableProps, ICRUDTab
         <Spacer height={20} />
         <Row>
           <ActionButton onClick={this.addEmptyRow}>Add metric</ActionButton>
-          <Spacer width={8} />
+          <Spacer height={20} />
           <ActionButton onClick={this.save} disabled={!keys(changedMetrics).length && !deletedMetrics.length}>Save changes</ActionButton>
         </Row>
         <Row className={`${showMessage ? "" : "hide"} fixed-to-bottom`}>

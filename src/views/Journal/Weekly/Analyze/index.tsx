@@ -134,6 +134,7 @@ const EmptyStateContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding-top: 50px;
+  padding-right: 2vw;
   margin: 0;
   color: ${Colors.textGrey};
   svg {
@@ -265,8 +266,8 @@ export default class Analyze extends React.Component<IAnalysisProps> {
 
     if (this.isMetricsEmpty) {
       return <EmptyState
-        title="You haven't added any metrics"
-        subtitle="Metrics help keep track of your daily deliverables. Create a set of metrics below to get started."
+        title="You haven't created any metrics yet"
+        subtitle="Create a set of metrics below to get started."
       />
     }
 
@@ -323,9 +324,9 @@ export default class Analyze extends React.Component<IAnalysisProps> {
     const { showActionBar } = this.state;
     return (
       <>
-        <TabContainer>
+        {!this.showingEmptyState && <TabContainer>
           {Tabs.map(tab => <Tab className={`${this.state.activeTab === tab ? "active" : ""}`} onClick={() => this.switchTab(tab)} key={tab}>{tab}</Tab>)}
-        </TabContainer>
+        </TabContainer>}
         {this.renderActiveTab()}
         <ActionsContainer className={`${showActionBar ? "open" : ""}`}>
           <button className="close" onClick={this.toggleShowActionBar}>
