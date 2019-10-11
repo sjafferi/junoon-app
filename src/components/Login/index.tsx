@@ -14,7 +14,7 @@ const Container = styled(Modal)`
 @inject("user")
 @inject("history")
 @observer
-export default class LoginModal extends React.Component<{ user?: User, history?: History }> {
+export default class LoginModal extends React.Component<{ user?: User, history?: History, isOpen?: boolean; }> {
   private formState: FormState = new FormState();
 
   constructor(props: any) {

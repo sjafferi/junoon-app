@@ -1,16 +1,47 @@
 import * as React from 'react';
+import styled, { keyframes } from 'styled-components';
+import { Colors } from 'ui';
 
-interface ISpinnerProps { }
+interface ISpinnerProps {
+  theme: string;
+  className?: string;
+}
+
+const Spin = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const Container = styled.div`
+  width: 30px;
+  height: 30px;
+  &.light {
+    border: 3px solid #FFC107;
+    border-top-color: #ffc80066;
+  }
+  &.dark {
+    border: 3px solid #72665cc4;
+    border-top-color: #c4babaed;
+  }
+  border-radius: 50%;
+  animation: ${Spin} 0.9s linear infinite;
+`;
+
+
 
 export default class Spinner extends React.Component<ISpinnerProps> {
+  static defaultProps = {
+    theme: "light"
+  };
 
   public render() {
+    const { className, theme } = this.props;
     return (
-      <div uk-spinner="" className="uk-spinner uk-icon">
-        <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" data-svg="spinner">
-          <circle fill="none" stroke="#000" cx="15" cy="15" r="14"></circle>
-        </svg>
-      </div>
+      <Container className={`${theme} ${className ? className : ""} loader`} />
     )
   }
 }

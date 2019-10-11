@@ -12,6 +12,7 @@ const Container = styled.div`
   display: flex;
   box-sizing: border-box;
   justify-content: space-between;
+  border-bottom: 1px solid ${Colors.lightGrey};
 `;
 
 const Column = styled.div`
@@ -20,7 +21,7 @@ const Column = styled.div`
 `;
 
 const DateRange = styled(Column)`
-  margin-left: 9%;
+  margin-left: 5%;
   &.logged-in {
     margin-left: 0;
     margin-right: 16%;
@@ -66,17 +67,19 @@ export default class Header extends React.Component<IHeaderProps, {}> {
   }
 
   render() {
+    const isAnalyzeActive = location.pathname.includes("analyze");
+    const pathnameSuffix = isAnalyzeActive ? "/analyze" : "";
     return (
       <Container>
         <Column>
           {this.props.LeftElement}
         </Column>
         <DateRange className={`${this.props.isLoggedIn ? "logged-in" : ""}`}>
-          <Link to={`/${BASE_ROUTE}/${this.prevWeek}`} >
+          <Link to={`/${BASE_ROUTE}/${this.prevWeek}${pathnameSuffix}`} >
             <i className="fa fa-chevron-left"></i>
           </Link>
           <Title>{this.week}</Title>
-          <Link to={`/${BASE_ROUTE}/${this.nextWeek}`} >
+          <Link to={`/${BASE_ROUTE}/${this.nextWeek}${pathnameSuffix}`} >
             <i className="fa fa-chevron-right"></i>
           </Link>
         </DateRange>

@@ -1,4 +1,4 @@
-import { post, put, get } from './api';
+import { post, put, get, deleteRequest } from './api';
 import { API_HOST } from 'consts';
 import { IEntry, IForm, ICreateMetric, IMetric, IMetricValue, IQuery } from 'stores'
 
@@ -49,4 +49,8 @@ export function saveForm(payload: IForm): Promise<IForm | IErrorResponse> {
 
 export function createMetrics(payload: ICreateMetric[]): Promise<IMetric[] | IErrorResponse> {
   return post(`${API_HOST}/forms/create-metrics`, payload);
+}
+
+export function deleteMetrics(payload: string[]): Promise<string[] | IErrorResponse> {
+  return deleteRequest(`${API_HOST}/forms/delete-metrics`, payload);
 }

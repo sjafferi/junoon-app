@@ -51,7 +51,6 @@ export const Header4: any = styled.h4`
   font-size: 1em;
   line-height: 1em;
   letter-spacing: 0.025em;
-  text-transform: capitalize;
 
   ${(props: any) => props.center ? `
     text-align: center;
@@ -74,7 +73,7 @@ export const Subtitle: any = styled.p`
 
 export const TextStyle = css`
   text-align: left;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.5em;
   letter-spacing: 0.02em;
@@ -86,6 +85,12 @@ export const Text: any = styled.p`
   ${(props: any) => props.center ? `
     text-align: center;
   ` : ''}
+`;
+
+export const TextLink = styled(Text)`
+  cursor: pointer;
+  padding-bottom: 1px;
+  border-bottom 0.5px solid ${Colors.blackish};
 `;
 
 export const HeaderNavigationText = styled(Header2)`

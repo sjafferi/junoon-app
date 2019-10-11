@@ -20,6 +20,7 @@ interface IFormProps {
   history?: History;
   router?: RouterStore;
   journal?: Journal;
+  navigateToCreateMetrics: () => void;
 }
 
 interface IFormState {
@@ -208,7 +209,7 @@ const schema: FormProps<any>["schema"] = {
   }
 };
 
-const FIELDS: Record<string, ICreateMetric> = {
+export const METRIC_FIELDS: Record<string, ICreateMetric> = {
   "yes / no": {
     type: "boolean"
   },
@@ -238,7 +239,7 @@ const FIELDS: Record<string, ICreateMetric> = {
 const FieldTemplate = (addButton: any, onSaveTitle: (id: string, title: string) => void) => function CustomFieldTemplate(props: any) {
   const { id, classNames, label, children } = props;
   const key = id.split("root_metrics_")[1];
-  const isNew = Object.keys(FIELDS).some(key => id.includes(key));
+  const isNew = Object.keys(METRIC_FIELDS).some(key => id.includes(key));
   const isBool = (id as string).includes("yes / no");
   const isNewBool = (id as string).includes("yes / no") && isNew;
   const renderInput = () => <EditableInput onSave={(title: string) => onSaveTitle(key, title)} value={label === key ? "" : label} key={id} />;
@@ -354,7 +355,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
           ui: ui && JSON.stringify(ui),
           additionalSchemaOptions: rest && JSON.stringify(rest)
         }));
-      const { response, error: err } = await this.journalStore.createMetrics(payload as any);
+      const { response, error: err } = await this.journalStore.upsertMetrics(payload as any);
       error = err;
       if (!error) {
         addedMetrics.forEach(({ id, value }) => {
@@ -384,12 +385,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
   }
 
   clickAddMetrics = () => {
-    if (this.metricsContainerRef && this.metricsContainerRef.current) {
-      this.metricsContainerRef.current.classList.add("adding-metrics");
-    }
-    if (this.selectRef && this.selectRef.current) {
-      this.selectRef.current.focus();
-    }
+    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}?viewMetrics=true`);
   }
 
   closeAddMetrics = () => {
@@ -400,16 +396,16 @@ export default class Form extends React.Component<IFormProps, IFormState> {
 
   onBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as any)) {
-      this.closeAddMetrics();
+      // this.closeAddMetrics();
     }
   }
 
   onAddField = (event: any) => {
     if (!event.target) return;
     const { label: value } = event.target;
-    this.closeAddMetrics();
+    // this.closeAddMetrics();
     if (value) {
-      const schema = Object.assign({}, FIELDS[value], { label: null });
+      const schema = Object.assign({}, METRIC_FIELDS[value], { label: null });
       this.setState({
         addedMetrics:
           this.state.addedMetrics.concat([{ type: value, value: schema, id: this.state.addedMetrics.length + value }] as any)
@@ -433,7 +429,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
       <AddMetricsContainer ref={this.metricsContainerRef}>
         <button type="button" className="add-button" onClick={this.clickAddMetrics}>Add metrics</button>
         <select className="add-button" ref={this.selectRef} onClick={this.onAddField} onBlur={this.onBlur} onFocus={(e: any) => { e.target.size = '6' }}>
-          {Object.keys(FIELDS).map((key, index) => <option value={key} key={index}>{key}</option>)}
+          {Object.keys(METRIC_FIELDS).map((key, index) => <option value={key} key={index}>{key}</option>)}
         </select>
       </AddMetricsContainer>
     )

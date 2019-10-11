@@ -5,7 +5,7 @@ import { sortBy } from "lodash";
 import { IMetric } from "stores";
 
 const Container = styled.div`
-  padding: 1rem;
+  padding: 2rem;
   table { 
     width: 100%; 
     border-collapse: collapse; 

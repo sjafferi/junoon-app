@@ -41,6 +41,10 @@ const Container = styled(ReactModal)`
 `;
 
 export default class Modal extends React.Component<IFormProps> {
+  static defaultProps = {
+    isOpen: true
+  };
+
   render() {
     return (
       <Container

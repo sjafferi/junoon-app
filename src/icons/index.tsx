@@ -1,2 +1,2 @@
-export * from './Biceps';
+export * from './MetricsEmptyState';
 export * from './Logo';

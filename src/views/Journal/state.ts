@@ -4,12 +4,17 @@ import * as moment from 'moment';
 import {
   EditorState, genKey, convertToRaw, convertFromRaw, RawDraftContentBlock
 } from 'draft-js';
-import { Journal, IMetric, IForm } from "stores";
+import { Journal, IMetric, IForm, IAverage } from "stores";
 import { addNewBlockAt, removeBlockAt } from "editor/model"
-import { isOverlapping, getBlockKey, containsPoint, genMetricId } from "./util";
+import { isOverlapping, getBlockKey, containsPoint, convertToLocal, convertToUTC } from "./util";
+
 
 export default class JournalState {
   @observable public selectedWeek: moment.Moment = moment();
+  @observable public updatedWeeks: Record<string, boolean> = {};
+  @observable public metricAverages: Record<string, Record<string, IAverage[]>> = {};
+  @observable public loading: Record<string, boolean> = {};
+
   public lockedCalls: { [key: string]: boolean } = {};
 
   constructor(public journalStore: Journal) {
@@ -54,13 +59,13 @@ export default class JournalState {
       form.uiSchema!["ui:order"] = this.journalStore.metrics.map(({ id }) => id!);
     }
     form.id = key;
-    form.date = day.utc().unix();
+    form.date = convertToUTC(day).unix();
 
     this.journalStore.forms[key] = form;
   }
 
   @action
-  updateEntriesForWeek = (date: moment.Moment = this.startOfSelectedWeek) => {
+  updateEntriesForWeek = (date: moment.Moment = this.startOfSelectedWeek, prefetch = false) => {
     const key = date.unix();
     if (!this.journalStore.entityMap[key]) {
       if (this.journalStore.isLoggedIn) {
@@ -70,6 +75,38 @@ export default class JournalState {
         this.journalStore.generateEntries(date);
       }
     }
+    if (this.journalStore.isLoggedIn && prefetch) {
+      setTimeout(() => {
+        this.updateEntriesForWeek(this.startOfSelectedWeek.subtract(1, 'w'));
+        this.updateEntriesForWeek(this.startOfSelectedWeek.add(1, 'w'));
+      }, 100)
+    }
+  }
+
+  @action
+  updateAnalysisForWeek = (start: moment.Moment = this.startOfSelectedWeek, end: moment.Moment = this.endOfSelectedWeek, prefetch = false): Promise<any> => {
+    let promises: Promise<any>[] = [];
+    if (this.shouldRefreshAnalysisData(start)) {
+      this.assign({ loading: { ...this.loading, "metricValues": true, "metricAverages": true, "analysis": true } });
+      const date = start.clone().startOf('isoWeek').startOf('day').format("MM-DD-YYYY");
+      promises.push(this.journalStore.fetchMetricAverages(moment.unix(0), convertToUTC(start)).then(averages => {
+        const previousAverage = this.metricAverages[date] || {};
+        this.assign({ metricAverages: { ...this.metricAverages, [date]: merge(previousAverage, averages) }, }); // loading: { ...this.loading, "metricAverages": false } });
+      }));
+      this.assign({ updatedWeeks: { [date]: false } });
+      promises.push(this.journalStore.fetchAnalysis(start.clone())) //.then(() => this.assign({ loading: { ...this.loading, "analysis": false } }));
+      promises.push(this.journalStore.fetchMetricValues(start, end)) //.then(() => this.assign({ loading: { ...this.loading, "metricValues": false } }));
+    }
+    if (prefetch) {
+      promises.push(
+        Promise.all([
+          this.updateAnalysisForWeek(start.clone().add(1, 'w'), end.clone().add(1, 'w')),
+          this.updateAnalysisForWeek(start.clone().subtract(1, 'w'), end.clone().subtract(1, 'w'))
+        ])
+          .then(() => this.assign({ loading: { ...this.loading, "analysis": false, "metricAverages": false, "metricValues": false } }))
+      );
+    }
+    return Promise.all(promises);
   }
 
   @computed
@@ -165,11 +202,29 @@ export default class JournalState {
     return this.journalStore.isLoggedIn && !isEmpty && moment().add(1, 'd').isAfter(day)
   }
 
+  shouldRefreshAnalysisData = (week: moment.Moment) => {
+    // if dirty or values dont exist
+    const day = week.clone().startOf('isoWeek').startOf('day');
+    const isDirty = this.updatedWeeks[day.format("MM-DD-YYYY")];
+    const valuesExist = this.metricAverages[day.format("MM-DD-YYYY")];
+    return isDirty || !valuesExist;
+  }
+
+  @action
   public onNotify = (type: string, payload: any) => {
     switch (type) {
       case "CREATE_ENTRY": {
         this.updateFormState(payload, true, true);
         return;
+      }
+      case "SUBMIT_FORM": {
+        const date = convertToLocal(moment(payload.date)).startOf('isoWeek').startOf('day').format("MM-DD-YYYY");
+        this.updatedWeeks[date] = true;
+        break;
+      }
+      case "INITIALIZED": {
+        this.updateEntriesForWeek(this.startOfSelectedWeek, true);
+        break;
       }
     }
   }

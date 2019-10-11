@@ -2,21 +2,18 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { observer } from "mobx-react";
 import { IAnalysis, IQuery } from 'stores';
-import { Header4, Row as RowUI, Modal, Primary, Colors } from 'ui'
+import { Header4, Row as RowUI, Primary, Colors } from 'ui'
 
 interface IProps {
-  open?: boolean;
-  close: () => void;
   analysis?: IAnalysis;
-  week: string;
   onQueryChange: (payload: Partial<IQuery>) => void
 }
 
-const Container = styled(Modal)`
+const Container = styled.div`
   padding: 92px;
   padding-top: 30px;
   text-align: center;
-  min-width: 500px;
+  box-sizing: content-box;
 `;
 
 const Title = styled(Header4)`
@@ -28,7 +25,7 @@ const Title = styled(Header4)`
 
 const Row = styled(RowUI)`
   position: relative;
-  padding: 13px;
+  padding: 13px 40px 13px 0px;
   font-size: 11px;
   justify-content: space-between;
   label {
@@ -43,12 +40,19 @@ const Row = styled(RowUI)`
       opacity: 1;
     }
   }
+  &.title > * {
+    font-size: 13px;
+    font-weight: bold;
+    font-style: normal;
+    font-family: 'Open Sans',sans-serif;
+    color: ${Colors.darkTextGrey};
+  }
 `;
 
 const FunctionsContainer = styled.div`
   position: absolute;
   top: 28%;
-  left: -85px;
+  left: -98px;
   border: none;
   opacity: 0;
   > button:first-child {
@@ -63,26 +67,46 @@ const FunctionsContainer = styled.div`
 
 const Function = styled(Primary)`
   &:hover, &.active {
-    background: #ffc800;
-    border-color: #ffc800;
+    background: ${Colors.gold};
+    border-color: ${Colors.gold};
     color: ${Colors.darkTextGrey};
   }
   padding: 2px;
-  height: 16px;
-  width: 45px;
+  height: 10px;
+  width: 40px;
   font-size: 8px;
   text-transform: capitalize;
   min-width: 0;
 `;
 
+const Insight = styled.span`
+  position: absolute;
+  top: 28%;
+  right: -90px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px !important;
+  font-style: italic;
+  color: ${Colors.darkTextGrey};
+  &.red {
+    color: red;
+  }
+  &.green {
+    color: green;
+  }
+  i {
+    font-size: 10px;
+    margin: 0 5px;
+  }
+  i.indicator {
+    font-size: 12px;
+  }
+`;
+
+
 @observer
-export default class AnalysisMdal extends React.Component<IProps> {
+export default class Summary extends React.Component<IProps> {
   constructor(props: any) {
     super(props);
-  }
-
-  close = () => {
-    this.props.close();
   }
 
   handleQueryChange = (original: IQuery, payload: Partial<IQuery>) => {
@@ -91,12 +115,23 @@ export default class AnalysisMdal extends React.Component<IProps> {
     }
   }
 
+  renderTitle = () => {
+    const doesInsightExist = this.props.analysis && this.props.analysis.find(({ insight }) => insight && insight.perc > 0 && insight.delta !== 0);
+    return (
+      <Row className="title">
+        <label>Metric</label>
+        <span>Value</span>
+        {doesInsightExist && <Insight style={{ top: "13px", right: "-137px" }}>Change from last week</Insight>}
+      </Row>
+    );
+  }
+
   renderAnalysis = (query: IQuery, index: number) => {
-    const { value, label, id, metricId, functions } = query;
+    const { value, label, id, metricId, functions, insight } = query;
     return (
       <Row key={index}>
         <FunctionsContainer>
-          {functions.length > 1 && functions.map((fn, index) =>
+          {functions && functions.length > 1 && functions.map((fn, index) =>
             <Function
               key={index}
               className={`${query.function === fn ? 'active' : ''}`}
@@ -108,15 +143,24 @@ export default class AnalysisMdal extends React.Component<IProps> {
         </FunctionsContainer>
         <label>{label}</label>
         <span>{value}</span>
+        {insight && insight.perc > 0 && insight.delta !== 0 && (
+          <Insight
+            className={`${insight.delta > 0 ? "green" : insight.delta < 0 ? "red" : ""}`}
+          >
+            {insight.delta !== 0 && <i className={`indicator fa ${insight.delta > 0 ? "fa-angle-double-up" : "fa-angle-double-down"}`}></i>}
+            {((insight.delta < 0 ? 1 - insight.perc : insight.perc) * 100).toFixed(2)}
+            <i className="fa fa-percent"></i>
+          </Insight>
+        )}
       </Row>
     );
   }
 
   public render() {
-    const { analysis, week } = this.props;
+    const { analysis } = this.props;
     return (
-      <Container isOpen={!!this.props.open} close={this.close}>
-        <Title>Analysis: {week}</Title>
+      <Container>
+        {/* {this.renderTitle()} */}
         {analysis && Object.values(analysis).map((value, index) => this.renderAnalysis(value, index))}
       </Container>
     )

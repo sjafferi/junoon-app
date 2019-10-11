@@ -55,6 +55,7 @@ export default function contentEditable(WrappedComponent) {
 
     handleChange = (e) => {
       this.setState({ value: e.target.value });
+      this.props.onChange(e.target.value);
     }
 
     handleKeyDown = (e) => {
@@ -73,10 +74,11 @@ export default function contentEditable(WrappedComponent) {
       if (this.props.editOnClick !== undefined) {
         editOnClick = this.props.editOnClick;
       }
+      const className = (this.props.className || '') + (editing ? ' editing' : '');
       return (
         <WrappedComponent
           {...this.props}
-          className={editing ? 'editing' : ''}
+          className={className}
           onClick={editOnClick ? this.toggleEdit : undefined}
           contentEditable={editing}
           ref={(domNode) => { this.domElm = domNode; }}

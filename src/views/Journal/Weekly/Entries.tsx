@@ -67,7 +67,6 @@ const Row: any = styled.div`
 
 const ResizableRow: any = styled(Resizable)`
   ${RowStyles}
-  border-top: 1px solid ${Colors.lightGrey};
   border-bottom: 1px solid ${Colors.lightGrey};
 
   > span > div {
@@ -167,16 +166,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
       this.state.resizableRowHeight = resizableRowHeight;
     }
 
-    this.onChangeWeek(moment(props.start, "MMMD"));
-
     this.clearAutosave = this.startAutosave();
-  }
-
-
-  componentWillUpdate(nextProps: Readonly<IWeeklyProps>) {
-    if (this.props.start !== nextProps.start) {
-      this.onChangeWeek(moment(nextProps.start, "MMMD"));
-    }
   }
 
   componentDidMount() {
@@ -294,11 +284,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   onSave = async (showToast?: boolean) => {
-    if (!this.changed) return;
-    if (!this.journalStore.isLoggedIn) {
-      toast('Please log in to save your changes');
-      return;
-    }
+    if (!this.changed || !this.journalStore.isLoggedIn) return;
     await this.journalStore.saveMany(this.keys);
     setTimeout(() => {
       if (showToast) toast("Save successful!");
@@ -312,12 +298,6 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     if (response && !(response as any).error) {
       this.journalStore.fetchAnalysis(this.start);
     }
-  }
-
-  @action
-  onChangeWeek = (date: moment.Moment) => {
-    this.journalState.assign({ selectedWeek: date.startOf('isoWeek') });
-    this.journalState.updateEntriesForWeek();
   }
 
   @action

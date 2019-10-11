@@ -7,9 +7,9 @@ import {
 import { FormProps, UiSchema } from "react-jsonschema-form";
 import { Snippets } from "editor/util/constants"
 import { RootStore } from './index';
-import { addSnippet } from "../views/Journal/util";
+import { addSnippet, convertToUTC } from "../views/Journal/util";
 import { getFirstBlock, updateDataOfBlock } from "editor/model";
-import { IErrorResponse, fetchEntries, fetchMetricValues, fetchMetricAverage, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, saveForm } from "api"
+import { IErrorResponse, fetchEntries, fetchMetricValues, fetchMetricAverage, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, deleteMetrics, saveForm } from "api"
 
 export type IQuery = {
   id: string;
@@ -19,7 +19,13 @@ export type IQuery = {
   value: string;
   function: string;
   functions: string[];
+  insight?: IInsight
 };
+
+export interface IInsight {
+  delta: number;
+  perc: number;
+}
 
 export type IAnalysis = IQuery[];
 
@@ -52,6 +58,11 @@ export interface IMetricValue {
   metricId: string;
   formId: string;
 };
+export interface IAverage {
+  day: string;
+  metricId: string;
+  value?: string;
+}
 export interface ITask {
   title: string;
   reason?: string;
@@ -69,7 +80,9 @@ export interface IForm {
 }
 
 export enum JournalActions {
-  "CREATE_ENTRY" = "CREATE_ENTRY"
+  "CREATE_ENTRY" = "CREATE_ENTRY",
+  "SUBMIT_FORM" = "SUBMIT_FORM",
+  "INITIALIZED" = "INITIALIZED"
 }
 
 export class Journal {
@@ -93,7 +106,7 @@ export class Journal {
     } else {
       this.generateEntries();
     }
-    console.log("we init");
+    this.notifyObservers(JournalActions.INITIALIZED, {});
     this.assign({ initialized: true });
   }
 
@@ -104,7 +117,7 @@ export class Journal {
   }
 
   @action
-  createMetrics = async (metrics: ICreateMetricPayload[]) => {
+  upsertMetrics = async (metrics: ICreateMetricPayload[]) => {
     let response, error;
 
     try {
@@ -115,7 +128,24 @@ export class Journal {
 
     if (response && !(response as IErrorResponse).error && !error) {
       response = <IMetric[]>response;
-      this.assign({ metrics: [...this.metrics, ...response] });
+      this.assign({ metrics: uniqBy([...this.metrics, ...response], "id") });
+    }
+
+    return { response, error };
+  }
+
+  @action
+  deleteMetrics = async (metricIds: string[]) => {
+    let response!: string[] | IErrorResponse, error;
+
+    try {
+      response = await deleteMetrics(metricIds);
+    } catch (e) {
+      error = e;
+    }
+
+    if (response && !(response as IErrorResponse).error && !error) {
+      this.assign({ metrics: this.metrics.filter(({ id }) => !(response as string[]).includes(id!)) });
     }
 
     return { response, error };
@@ -138,6 +168,7 @@ export class Journal {
     if (response && !(response as IErrorResponse).error) {
       this.assign({ forms: { ...this.forms, [id]: { ...response, submitted: true } } });
     }
+    this.notifyObservers(JournalActions.SUBMIT_FORM, { id, date: this.forms[id].date });
     return response;
   }
 
@@ -154,8 +185,10 @@ export class Journal {
 
   @action
   fetchAnalysis = async (day: moment.Moment) => {
-    const start = day.clone().startOf('isoWeek').utc().startOf('day').unix();
-    const end = day.clone().endOf('isoWeek').utc().unix();
+    let start: any = convertToUTC(day).startOf('isoWeek').startOf('day');
+    const currentWeek = convertToUTC(moment()).startOf('isoWeek').startOf('day');
+    const end = start.isSame(currentWeek) ? convertToUTC(moment().subtract(2, 'd')).endOf('day').unix() : convertToUTC(day).endOf('isoWeek').unix(); // todo: double check next monday! 
+    start = start.unix();
 
     let analyses;
     try {
@@ -165,9 +198,11 @@ export class Journal {
     }
 
     if (analyses && !analyses.error) {
-      const updated = uniqBy([...analyses, ...(this.analyses[start] || [])].sort((a, b) => a.order - b.order), 'metricId');
+      const updated = analyses.sort((a: IQuery, b: IQuery) => a.order - b.order);
       this.assign({ analyses: { ...this.analyses, [start]: updated } });
     }
+
+    return { response: analyses, error: analyses.error };
   }
 
   @action
@@ -294,7 +329,7 @@ export class Journal {
   }
 
   getKeyForEntityMap = (day: moment.Moment) => {
-    return day.utc().startOf('day').unix();
+    return day.clone().utc().startOf('day').unix();
   }
 
   getFormForDay = (day: moment.Moment) => {

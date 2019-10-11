@@ -27,22 +27,22 @@ export default class TodoBlock extends React.Component {
     const checked = data.get('checked') === true;
     const placeholder = textLength === 0 && data.get('placeholder');
     return (
-      <Draggable
-        handle=".drag-handle"
-        onStart={handleDragStart}
-        onDrag={handleDrag}
-        onStop={handleDragEnd}
-      >
-        <div className="md-block-todo control control--checkbox" style={{ marginLeft: `${depth * 1.5}em` }}>
-          <button className="drag-handle">
+      // <Draggable
+      //   handle=".drag-handle"
+      //   onStart={handleDragStart}
+      //   onDrag={handleDrag}
+      //   onStop={handleDragEnd}
+      // >
+      <div className="md-block-todo control control--checkbox" style={{ marginLeft: `${depth * 1.5}em` }}>
+        {/* <button className="drag-handle">
             <i className="fa fa-bars"></i>
-          </button>
-          {placeholder && <span className="placeholder">{placeholder}</span>}
-          <input ref={this.todoRef} id={`input-${key}`} type="checkbox" checked={checked} onChange={this.updateData} />
-          <label htmlFor={`input-${key}`} className="control__indicator" />
-          <EditorBlock {...this.props} />
-        </div>
-      </Draggable>
+          </button> */}
+        {placeholder && <span className="placeholder">{placeholder}</span>}
+        <input ref={this.todoRef} id={`input-${key}`} type="checkbox" checked={checked} onChange={this.updateData} />
+        <label htmlFor={`input-${key}`} className="control__indicator" />
+        <EditorBlock {...this.props} />
+      </div>
+      // </Draggable>
     );
   }
 }

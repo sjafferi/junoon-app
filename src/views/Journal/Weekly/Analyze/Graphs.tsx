@@ -1,9 +1,10 @@
 import * as React from 'react';
 import * as moment from 'moment';
 import styled from 'styled-components';
-import { LineChart, PieChart } from "ui";
-import { IMetric } from "stores";
-import { IRow, IAverage } from "./index";
+import { observer } from 'mobx-react';
+import { breakpoint, LineChart, PieChart, Colors } from "ui";
+import { IMetric, IAverage } from "stores";
+import { IRow } from "./index";
 import { convertToLocal } from "../../util";
 
 interface IGraphsProps {
@@ -13,9 +14,47 @@ interface IGraphsProps {
 };
 
 const Container = styled.div`
+  width: 100%;
+  min-height: 40%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-end;
+  position: relative;
+`;
+
+const Legend = styled.div`
+  display: flex;
+  position: absolute;
+  top: -20px;
+  left: 15px;
+
+  span {
+    display: flex;
+    font-size: 12px;
+    margin-right: 15px;
+  }
+
+  .data-block {
+    width: 25px;
+    height: 10px;
+    margin-right: 5px;
+    background: ${Colors.gold};
+  }
+
+  .average-block {
+    width: 25px;
+    height: 10px;
+    margin-right: 5px;
+    background: ${Colors.chartAverageGrey};
+  }
+
+  ${breakpoint.down('ml')`{
+    flex-direction: column;
+    span:first-child {
+      margin-bottom: 12.5px;
+    }
+  }`}
 `;
 
 function getChartType(metric: IMetric) {
@@ -33,7 +72,14 @@ function getChartType(metric: IMetric) {
   return chartType;
 }
 
+const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+@observer
 export default class Graphs extends React.Component<IGraphsProps> {
+  lineCharts: { x: Date, y: number }[][] = [];
+
+
+
   renderChart = ({ id, title, ...rest }: IRow) => {
     const metric = this.props.metrics.find(({ id: metricId }) => id === metricId);
     if (metric) {
@@ -48,13 +94,16 @@ export default class Graphs extends React.Component<IGraphsProps> {
         const averageData: { x: Date, y: number }[] = []
         if (Array.isArray(averages)) {
           for (let i = 0; i < averages.length; i++) {
-            const { value } = averages[i];
+            const weekday = days[moment(timestamps[i].toISOString()).weekday()];
+            const average = averages.find(({ day }) => day === weekday);
+            const { value } = average || {} as any;
             const parsedVal = parseFloat(value as any);
             if (!isNaN(parsedVal)) {
               averageData.push({ x: timestamps[i], y: parsedVal });
             }
           }
         }
+        if (data.length > 0) this.lineCharts.push(data);
         return data.length > 0 && <LineChart labels={labels} data={data} averages={averageData} key={id as string} title={title as string} />
       }
       if (type === "pie") {
@@ -68,9 +117,16 @@ export default class Graphs extends React.Component<IGraphsProps> {
 
   render() {
     const { data } = this.props;
+    this.lineCharts = [];
     return (
       <Container>
-        {data.map(this.renderChart)}
+        {data.sort((a, b) => a.type > b.type ? 1 : -1).map(this.renderChart)}
+        {this.lineCharts.length > 0 && (
+          <Legend>
+            <span><div className="data-block"></div> This week</span>
+            <span><div className="average-block"></div> Average of previous weeks</span>
+          </Legend>
+        )}
       </Container>
     );
   }

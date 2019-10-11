@@ -112,6 +112,10 @@
     "no-console": false,
     "no-empty-interface": false,
     "max-classes-per-file": false,
+    "max-line-length": [
+      true,
+      50
+    ]
   },
   "jsRules": {
     "no-unused-expression": true

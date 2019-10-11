@@ -15,20 +15,21 @@ export interface IUser {
 
 export class User {
   @observable public user?: IUser;
-  @observable public sessionLoaded = false;
 
   constructor(protected rootStore: RootStore) {
     if (document.cookie) {
       this.validateUser();
     } else {
-      this.onSessionLoad();
+      this.setUser();
     }
   }
 
   @action
-  setUser = (user: IUser) => {
+  setUser = (user?: IUser) => {
     this.user = user;
-    this.rootStore.journal.initialize();
+    if (this.rootStore.journal) {
+      this.rootStore.journal.initialize();
+    }
   }
 
   @action
@@ -45,7 +46,6 @@ export class User {
 
     if (result) this.setUser(result);
 
-    this.onSessionLoad();
     return { result, error };
   }
 
@@ -101,14 +101,6 @@ export class User {
     window.location.reload();
 
     return { result, error };
-  }
-
-  @action
-  onSessionLoad = () => {
-    this.sessionLoaded = true;
-    if (this.rootStore.journal && !this.rootStore.journal.initialized) {
-      this.rootStore.journal.initialize();
-    }
   }
 
   @computed

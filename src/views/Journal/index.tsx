@@ -1,13 +1,14 @@
 import * as React from "react";
 import * as moment from "moment";
+import styled from "styled-components";
 import { action } from "mobx";
 import { parse } from 'query-string';
 import { observer, inject } from "mobx-react";
 import { Switch, Route, Redirect, withRouter } from "react-router-dom";
 import { EditorState } from 'draft-js';
 import { Journal as JournalStore, RouterStore, User } from 'stores';
-import { LoginModal, Spinner } from 'ui'
-import styled from "styled-components";
+import { LoginModal } from 'ui'
+import { Action, History, Location, UnregisterCallback } from 'history';
 import Editor from "./Editor";
 import Weekly from "./Weekly";
 import State from "./state";
@@ -29,7 +30,8 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 90.5vw;
+  // width: 90.5vw;
+  width: 92vw;
   height: 100vh;
   background: white;
 `;
@@ -37,7 +39,6 @@ const Container = styled.div`
 export const BASE_ROUTE = `agenda`;
 
 @inject('user')
-@inject('router')
 @inject('journal')
 @(withRouter as any)
 @observer
@@ -54,7 +55,11 @@ export default class Journal extends React.Component<IProps, IState> {
   }
 
   get params() {
-    return parse(this.props.router!.location.search) || {};
+    return parse(this.props.history!.location.search) || {};
+  }
+
+  navigateToCreateMetrics = () => {
+    this.props.history!.push({ search: "?viewMetrics=true" });
   }
 
   getEntry = (id: number) => {
@@ -79,15 +84,6 @@ export default class Journal extends React.Component<IProps, IState> {
   }
 
   public render() {
-    const ready = this.props.user!.sessionLoaded && this.props.journal!.initialized;
-    if (!ready) {
-      return (
-        <Container>
-          <Spinner />
-        </Container>
-      )
-    }
-
     return (
       <Container>
         <Switch>
@@ -117,6 +113,7 @@ export default class Journal extends React.Component<IProps, IState> {
             history={this.props.history as any}
             date={match.params.date}
             state={this.journalState}
+            navigateToCreateMetrics={this.navigateToCreateMetrics}
           />
         )}
         />
