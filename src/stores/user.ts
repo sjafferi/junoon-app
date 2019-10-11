@@ -29,6 +29,8 @@ export class User {
     this.user = user;
     if (this.rootStore.journal) {
       this.rootStore.journal.initialize();
+    } else {
+      setTimeout(() => this.setUser(user), 200);
     }
   }
 

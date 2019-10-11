@@ -103,10 +103,9 @@ export default class JournalState {
           this.updateAnalysisForWeek(start.clone().add(1, 'w'), end.clone().add(1, 'w')),
           this.updateAnalysisForWeek(start.clone().subtract(1, 'w'), end.clone().subtract(1, 'w'))
         ])
-          .then(() => this.assign({ loading: { ...this.loading, "analysis": false, "metricAverages": false, "metricValues": false } }))
       );
     }
-    return Promise.all(promises);
+    return Promise.all(promises).then(() => this.assign({ loading: { ...this.loading, "analysis": false, "metricAverages": false, "metricValues": false } }));
   }
 
   @computed

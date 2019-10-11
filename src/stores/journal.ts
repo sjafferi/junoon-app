@@ -95,9 +95,7 @@ export class Journal {
   public observers: any[] = [];
   public entityMap: { [key: number]: { id: string } } = {};
 
-  constructor(protected rootStore: RootStore) {
-    // this.initialize();
-  }
+  constructor(protected rootStore: RootStore) { }
 
   initialize = async () => {
     this.cleanEntries();
