@@ -96,7 +96,7 @@ export class Journal {
   public entityMap: { [key: number]: { id: string } } = {};
 
   constructor(protected rootStore: RootStore) {
-    this.initialize();
+    // this.initialize();
   }
 
   initialize = async () => {

@@ -14,7 +14,7 @@ interface IGraphsProps {
 };
 
 const Container = styled.div`
-  width: 100%;
+  max-width: 900px;
   min-height: 40%;
   display: flex;
   flex-wrap: wrap;
@@ -26,8 +26,8 @@ const Container = styled.div`
 const Legend = styled.div`
   display: flex;
   position: absolute;
-  top: -20px;
-  left: 15px;
+  top: 18px;
+  left: 30px;
 
   span {
     display: flex;
@@ -119,15 +119,17 @@ export default class Graphs extends React.Component<IGraphsProps> {
     const { data } = this.props;
     this.lineCharts = [];
     return (
-      <Container>
-        {data.sort((a, b) => a.type > b.type ? 1 : -1).map(this.renderChart)}
+      <>
+        <Container>
+          {data.sort((a, b) => a.type > b.type ? 1 : -1).map(this.renderChart)}
+        </Container>
         {this.lineCharts.length > 0 && (
           <Legend>
             <span><div className="data-block"></div> This week</span>
             <span><div className="average-block"></div> Average of previous weeks</span>
           </Legend>
         )}
-      </Container>
+      </>
     );
   }
 }
