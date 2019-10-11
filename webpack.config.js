@@ -98,7 +98,7 @@ module.exports = {
       template: "./src/index.html",
       title: TITLE,
       environment: NODE_ENV,
-      zoom: NODE_ENV === "production" ? 1.1 : 1.1,
+      zoom: NODE_ENV === "production" ? 1.2 : 1.1,
       filename: "index.html"
     }),
     ...(FAVICON_DIR ? [new WebappWebpackPlugin(FAVICON_DIR)] : []),
