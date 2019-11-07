@@ -372,7 +372,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
       response = await this.journalStore.saveForm((this.formData || {}).id);
     }
     if (response && !(response as IErrorResponse).error) {
-      await this.journalState.updateFormState(moment((response as any).date));
+      await this.journalState.updateFormState(moment.utc((response as any).date));
     }
     this.close();
   }

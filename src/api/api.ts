@@ -1,3 +1,17 @@
+function getCredentials(includeCreds: boolean) {
+    const options = {
+        credentials: includeCreds ? "include" : "same-origin", // include, *same-origin, omit
+        headers: {
+            "Content-Type": "application/json",
+        },
+    } as RequestInit;
+    const PUBLIC_ACCT_ID = require('../stores/user').PUBLIC_ACCT_ID;
+    if (PUBLIC_ACCT_ID) {
+        (options.headers as any)['get-public-account'] = PUBLIC_ACCT_ID;
+    }
+    return options;
+}
+
 export function post(url = ``, data = {}, includeCreds: boolean = true) {
     // Default options are marked with *
     return fetch(url, {
@@ -36,10 +50,7 @@ export function get(url = ``, includeCreds: boolean = true) {
     return fetch(url, {
         method: "GET", // *GET, POST, PUT, DELETE, etc.
         mode: "cors", // no-cors, cors, *same-origin
-        credentials: includeCreds ? "include" : "same-origin",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        ...getCredentials(includeCreds)
     })
         .then(response => response.json()); // parses response to JSON
 }

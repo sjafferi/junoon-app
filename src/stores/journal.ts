@@ -9,7 +9,7 @@ import { Snippets } from "editor/util/constants"
 import { RootStore } from './index';
 import { addSnippet, convertToUTC } from "../views/Journal/util";
 import { getFirstBlock, updateDataOfBlock } from "editor/model";
-import { IErrorResponse, fetchEntries, fetchMetricValues, fetchMetricAverage, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, deleteMetrics, saveForm } from "api"
+import { IErrorResponse, fetchEntries, fetchOrCreateEntries, fetchMetricValues, fetchMetricAverage, updateEntries, updateQuery, fetchAnalysis, fetchForms, fetchMetrics, createMetrics, deleteMetrics, saveForm } from "api"
 
 export type IQuery = {
   id: string;
@@ -229,7 +229,7 @@ export class Journal {
     }
 
     if (response && !(response as IErrorResponse).error) {
-      response = (<IMetricValue[]>response).map(({ date, ...rest }) => ({ ...rest, date: moment(date) }));
+      response = (<IMetricValue[]>response).map(({ date, ...rest }) => ({ ...rest, date: moment.utc(date) }));
       response = uniqBy([...this.metricValues, ...response], ({ metricId, formId }) => metricId + formId).sort((a: IMetricValue, b: IMetricValue) => a.date.unix() - b.date.unix());
       this.assign({ metricValues: response });
     }
@@ -254,7 +254,11 @@ export class Journal {
 
     let entries, forms;
     try {
-      entries = await fetchEntries(startOfWeek, endOfWeek);
+      if (this.rootStore.user.isViewingPublicAcct) {
+        entries = await fetchEntries(startOfWeek, endOfWeek);
+      } else {
+        entries = await fetchOrCreateEntries(startOfWeek, endOfWeek);
+      }
       forms = await fetchForms(startOfWeek, endOfWeek);
     } catch (e) {
 

@@ -1,23 +1,30 @@
 import { action, computed, observable } from 'mobx';
+import { assign } from 'lodash';
 import { RootStore } from './index';
 import { login, signup, signout, fetchUser } from 'api'
+import { getParameterByName } from "../util";
 
-export type IRole = "admin" | "customer" | "restaurant";
+export const PUBLIC_ACCT_PARAM_NAME = 'uid';
+export let PUBLIC_ACCT_ID: string | null = null;
 
 export interface IUser {
   id?: string;
   email: string;
-  phone: string;
-  role: IRole;
   password: string;
-  city: string;
+  isPublic?: boolean;
 }
 
 export class User {
-  @observable public user?: IUser;
+  @observable public user?: Partial<IUser>;
+  @observable public isViewingPublicAcct = false;
 
   constructor(protected rootStore: RootStore) {
-    if (document.cookie) {
+    const publicAcctId = getParameterByName(PUBLIC_ACCT_PARAM_NAME);
+    if (publicAcctId) {
+      this.setUser({ id: publicAcctId, isPublic: true });
+      this.assign({ isViewingPublicAcct: true });
+      PUBLIC_ACCT_ID = publicAcctId;
+    } if (document.cookie) {
       this.validateUser();
     } else {
       this.setUser();
@@ -25,12 +32,15 @@ export class User {
   }
 
   @action
-  setUser = (user?: IUser) => {
+  setUser = (user?: Partial<IUser>) => {
     this.user = user;
     if (this.rootStore.journal) {
       this.rootStore.journal.initialize();
     } else {
       setTimeout(() => this.setUser(user), 200);
+    }
+    if (user && user.email) {
+      PUBLIC_ACCT_ID = null;
     }
   }
 
@@ -105,9 +115,14 @@ export class User {
     return { result, error };
   }
 
+  @action
+  assign(fields: { [id: string]: any }) {
+    assign(this, fields);
+  }
+
   @computed
   get isLoggedIn(): boolean {
-    return !!(this.user);
+    return !!(this.user) || this.isViewingPublicAcct;
   }
 }
 

@@ -34,6 +34,10 @@ const Container = styled.div`
   padding-bottom: 50px;
   overflow: scroll;
   position: relative;
+
+  > div {
+    margin-right: 3vw;
+  }
 `;
 
 const TabContainer = styled.div`
@@ -135,7 +139,7 @@ const EmptyStateContainer = styled.div`
   align-items: center;
   padding-top: 50px;
   padding-right: 2vw;
-  margin: 0;
+  margin: 0 !important;
   color: ${Colors.textGrey};
   svg {
     max-height: 330px;

@@ -100,12 +100,22 @@ export function transformMetricToUISchema(metrics: { type: string, value: ICreat
   return schema;
 }
 
-export function convertToUTC(date: moment.Moment) {
-  return date.clone().add((moment().utcOffset()), 'm').utc();
+export function convertToUTC(date: moment.Moment) { // ensure that forwarded dates are in UTC already!
+  const cloned = date.clone();
+  let offset = moment().utcOffset();
+  if (cloned.isDST() && !cloned.isUTC()) {
+    offset += 60;
+  }
+  return cloned.add(offset, 'm').utc();
 }
 
 export function convertToLocal(date: moment.Moment) {
-  return date.clone().add((-moment().utcOffset()), 'm').local();
+  const cloned = date.clone();
+  let offset = moment().utcOffset();
+  if (cloned.isDST() && cloned.isUTC()) {
+    offset += 60;
+  }
+  return cloned.add(-offset, 'm').local();
 }
 
 export const groupBy = (key: string) => (array: any[]) =>

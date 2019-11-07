@@ -19,7 +19,7 @@ interface IWeeklyState { }
 
 interface IWeeklyProps {
   state: State;
-  start: string;
+  start: moment.Moment;
   history?: History;
   journal?: Journal;
   user?: User;
@@ -90,8 +90,8 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   componentWillUpdate(nextProps: Readonly<IWeeklyProps>) {
-    if (this.props.start !== nextProps.start) {
-      this.onChangeWeek(moment(nextProps.start, "MMMD"));
+    if (!this.props.start.isSame(nextProps.start)) {
+      this.onChangeWeek(nextProps.start);
     }
   }
 
@@ -108,17 +108,17 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   get start() {
-    return moment(this.props.start, "MMMD").startOf('isoWeek').startOf('day');
+    return this.props.start.format("MMMD");
   }
 
   get isReady() {
-    return this.journal.initialized && this.journal.entries[this.journal.getKeyForDay(this.start)];
+    return this.journal.initialized && this.journal.entries[this.journal.getKeyForDay(this.props.start)];
   }
 
   forceRender = () => this.setState({ forceRender: !this.state.forceRender })
 
   onRouteChange = (location: Location, action: Action) => {
-    if (location.pathname.includes(`/${BASE_ROUTE}/${this.props.start}`)) {
+    if (location.pathname.includes(`/${BASE_ROUTE}/${this.start}`)) {
       this.forceRender();
     }
   }
@@ -134,11 +134,11 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   navigateToAnalysis = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.props.start}/analyze`);
+    this.props.history!.push(`/${BASE_ROUTE}/${this.start}/analyze`);
   }
 
   navigateToAgenda = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.props.start}`);
+    this.props.history!.push(`/${BASE_ROUTE}/${this.start}`);
   }
 
   renderHeaderLeft = () => {
@@ -185,23 +185,23 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
         <Header
           LeftElement={this.renderHeaderLeft()}
           RightElement={this.renderHeaderRight()}
-          start={this.start}
+          start={this.props.start}
           isLoggedIn={this.journal.isLoggedIn}
         />
         {!ready && <Spinner />}
         {ready && <Switch>
           {this.journal.isLoggedIn && <Route path={`/${BASE_ROUTE}/:start/analyze`} render={() => (
             <WeeklyAnalysis
-              start={this.start}
-              end={this.start.clone().endOf('isoWeek')}
+              start={this.props.start}
               state={this.props.state}
+              end={this.props.start.clone().endOf('isoWeek')}
               navigateToMetrics={this.navigateToCreateMetrics}
             />
           )} />}
           <Route path={`/${BASE_ROUTE}/:start`} render={() => (
             <WeeklyEntries
               history={this.props.history}
-              start={this.props.start}
+              start={this.start}
               state={this.props.state}
             />
           )} />
@@ -209,7 +209,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
         {this.params.viewMetrics && <ViewMetrics
           journal={this.journal}
           history={this.props.history!}
-          start={this.start}
+          start={this.props.start}
         />}
       </Container>
     );

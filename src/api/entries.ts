@@ -8,6 +8,10 @@ export interface IErrorResponse {
 }
 
 export function fetchEntries(start: number, end: number) {
+  return get(`${API_HOST}/entries/fetch-many/${start}/${end}`);
+}
+
+export function fetchOrCreateEntries(start: number, end: number) {
   return post(`${API_HOST}/entries/fetch-or-create-many`, { start, end });
 }
 

@@ -12,6 +12,7 @@ interface IProps {
 const Container = styled.div`
   padding: 92px;
   padding-top: 30px;
+  padding-right: 5vw;
   text-align: center;
   box-sizing: content-box;
 `;
