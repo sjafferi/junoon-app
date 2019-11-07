@@ -95,7 +95,7 @@ const Table: React.SFC<ITableProps> = ({ headers, rows }) => {
             <td title={(row["title"] as string).length > 15 ? (row["title"] as string) : undefined} >{row["title"]}</td>
             {sortBy(Object.entries(row).map(([timestamp, value]) =>
               ({ timestamp, value })), "timestamp").map(({ timestamp, value }, colIdx) => {
-                return (timestamp !== "title" && timestamp !== "id") && <td title={(value as string).length > 15 ? (value as string) : undefined} key={colIdx}>{value}</td>;
+                return (timestamp !== "title" && timestamp !== "id" && timestamp !== "type") && <td title={(value as string).length > 15 ? (value as string) : undefined} key={colIdx}>{value}</td>;
               })}
           </tr>)}
         </tbody>

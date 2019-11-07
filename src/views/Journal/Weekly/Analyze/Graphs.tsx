@@ -50,9 +50,9 @@ const Legend = styled.div`
   }
 
   ${breakpoint.down('ml')`{
-    flex-direction: column;
+    flex-direction: column-reverse;
     span:first-child {
-      margin-bottom: 12.5px;
+      margin-top: 12.5px;
     }
   }`}
 `;
@@ -121,7 +121,7 @@ export default class Graphs extends React.Component<IGraphsProps> {
     return (
       <>
         <Container>
-          {data.sort((a, b) => a.type > b.type ? 1 : -1).map(this.renderChart)}
+          {data.sort((a, b) => a.type < b.type ? 1 : -1).map(this.renderChart)}
         </Container>
         {this.lineCharts.length > 0 && (
           <Legend>

@@ -25,7 +25,7 @@ export type IRow = Record<number | string, string | number | moment.Moment>;
 
 const Container = styled.div`
   box-sizing: border-box;
-  height: 100%;
+  height: 90%;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -250,7 +250,7 @@ export default class Analyze extends React.Component<IAnalysisProps> {
     }
 
     this.metrics.forEach(metric => {
-      const row: IRow = { title: metric.data.title!, id: metric.id! };
+      const row: IRow = { title: metric.data.title!, id: metric.id!, type: metric.data.type! as string };
       const metricValues: IMetricValue[] = values[metric.id!];
       const date = convertToUTC(this.props.start);
       addDay(date, metricValues, row);

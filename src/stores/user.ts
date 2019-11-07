@@ -56,7 +56,7 @@ export class User {
       error = e;
     }
 
-    if (result) this.setUser(result);
+    this.setUser(result);
 
     return { result, error };
   }

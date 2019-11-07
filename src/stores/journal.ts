@@ -185,7 +185,8 @@ export class Journal {
   fetchAnalysis = async (day: moment.Moment) => {
     let start: any = convertToUTC(day).startOf('isoWeek').startOf('day');
     const currentWeek = convertToUTC(moment()).startOf('isoWeek').startOf('day');
-    const end = start.isSame(currentWeek) ? convertToUTC(moment().subtract(2, 'd')).endOf('day').unix() : convertToUTC(day).endOf('isoWeek').unix(); // todo: double check next monday! 
+    const isFormSubmittedToday = this.getFormForDay(start) && this.getFormForDay(start).submitted;
+    const end = start.isSameOrAfter(currentWeek) ? convertToUTC(moment().subtract(isFormSubmittedToday ? 0 : 1, 'day')).unix() : convertToUTC(day).endOf('isoWeek').unix(); // todo: double check next monday! 
     start = start.unix();
 
     let analyses;
