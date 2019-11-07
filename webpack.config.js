@@ -2,7 +2,6 @@ const webpack = require("webpack");
 const path = require('path');
 const ImageminPlugin = require("imagemin-webpack-plugin").default;
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const WebappWebpackPlugin = require("webapp-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const NODE_ENV = process.env.NODE_ENV || "development";
@@ -101,7 +100,6 @@ module.exports = {
       zoom: NODE_ENV === "production" ? 1.1 : 1.1,
       filename: "index.html"
     }),
-    ...(FAVICON_DIR ? [new WebappWebpackPlugin(FAVICON_DIR)] : []),
     new ImageminPlugin({
       disable: DEV_MODE,
       pngquant: {
