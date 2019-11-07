@@ -94,7 +94,7 @@ export function transformMetricToUISchema(metrics: { type: string, value: ICreat
 
   let order = [] as any;
   if (currentSchema) {
-    order = currentSchema!["ui:order"]!;
+    order = currentSchema!["ui:order"] || order;
   }
   schema!["ui:order"] = [...order, ...ids];
   return schema;

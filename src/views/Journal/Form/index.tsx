@@ -1,14 +1,15 @@
 import * as React from 'react';
 import * as moment from 'moment';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import ReactForm, { FormProps, IChangeEvent, UiSchema } from "react-jsonschema-form";
-import { debounce, merge, isEqual } from 'lodash';
+import { merge, isEqual } from 'lodash';
 import { toJS } from 'mobx';
 import { History } from "history";
 import { inject, observer } from "mobx-react";
 import { IErrorResponse } from 'api';
 import { Journal, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
-import { Modal, EditableInput } from 'ui';
+import { Colors, Header2, Modal, EditableInput } from 'ui';
 import { FormStyles } from "./FormStyles";
 import { transformMetricToSchema, transformMetricToUISchema } from "../util";
 import { BASE_ROUTE } from "../index";
@@ -24,16 +25,31 @@ interface IFormProps {
 }
 
 interface IFormState {
+  selectedSegment: string;
   addingMetrics: boolean;
   addedMetrics: { type: string, value: ICreateMetric, id: string }[];
 }
 
 const Container = styled(Modal)`
-  min-width: 500px;
+  min-width: 600px;
   height: 80%;
-  padding: 30px;
+  overflow: hidden;
   form {
     ${FormStyles}
+    &::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+      background-color: ${Colors.lighterGrey};
+    }
+    &::-webkit-scrollbar {
+      width: 5px;
+      background-color: transparent;
+      box-shadow: none;
+    }
+    width: 100%;
+    max-height: calc(100% - 20px);
+    overflow: scroll;
+    padding: 15px 20px;
 
     legend {
       text-align: center;
@@ -56,9 +72,10 @@ const Container = styled(Modal)`
     }
 
     #root__title {
-      font-size: 24px;
-      border-bottom: 1px solid #e5e5e5;
-      padding-bottom: 6px;
+      display: none;
+      // font-size: 24px;
+      // border-bottom: 1px solid #e5e5e5;
+      // padding-bottom: 6px;
     }
 
     legend {
@@ -82,15 +99,16 @@ const Container = styled(Modal)`
       margin-top: 5px;
       text-align: center;
     }
-    #root_metrics .field-boolean {
+    #root_metrics .form-group.field-boolean {
       margin: 0;
+      margin-bottom: 7px !important;
       > label {
         display: none;
       }
     }
     #root_metrics {
       .form-group {
-        margin-bottom: 30px !important;
+        margin-bottom: 21px !important;
       }
     }
   }
@@ -103,7 +121,7 @@ const Container = styled(Modal)`
   input.form-control {
     border: none;
     box-shadow: none;
-    border-bottom: 0.5px dashed black;
+    border-bottom: 1px solid ${Colors.mutedTextGrey};
   }
 
   .form-group {
@@ -130,9 +148,12 @@ const Container = styled(Modal)`
 
   .add-button {
     width: 50%;
-    margin-left: 25%;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 0;
+    padding: 2px;
+    text-align: center;
+    text-decoration: none !important;
+    color: ${Colors.blackish};
+    border: 1px solid ${Colors.darkLightGrey};
   }
 
   select.add-button {
@@ -156,9 +177,10 @@ const Container = styled(Modal)`
     display: none;
   }
 
-  // .checkbox > label {
-  //   display: inline-block;
-  // }
+  #root_tasks, #root_metrics {
+    display: none;
+    padding-bottom: 12px;
+  }
 `;
 
 const AddMetricsContainer = styled.div`
@@ -176,6 +198,59 @@ const AddMetricsContainer = styled.div`
     select {
       display: block;
     }
+  }
+`;
+
+const Title = styled(Header2)`
+  margin: 0;
+  text-align: center;
+  padding: 12px 0;
+  border-bottom: 1px solid ${Colors.lighterGrey};
+`;
+
+const Content = styled.div`
+  display: flex;
+  height: 100%;
+  padding: 30px;
+  padding-top: 0;
+  padding-right: 0;
+  &.selected-metrics #root_metrics {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  &.selected-tasks #root_tasks {
+    display: block;
+  }
+  > form > div:last-child {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border-top: 1px solid ${Colors.lighterGrey};
+  }
+`;
+
+const FormNavigation = styled.ul`
+  width: 100px;
+  margin: 0;
+  padding: 0;
+  padding-top: 10px;
+  border-right: 1px solid ${Colors.lighterGrey};
+  
+  li {
+    padding: 12px 7px;
+    list-style-type: none;
+    text-transform: capitalize;
+    color: ${Colors.mutedTextGrey};
+    transition: color 0.3s ease-out;
+    cursor: pointer;
+  }
+
+  li.selected {
+    color: ${Colors.blackish};
   }
 `;
 
@@ -236,15 +311,16 @@ export const METRIC_FIELDS: Record<string, ICreateMetric> = {
 };
 
 
-const FieldTemplate = (addButton: any, onSaveTitle: (id: string, title: string) => void) => function CustomFieldTemplate(props: any) {
+const FieldTemplate = (date: string, onSaveTitle: (id: string, title: string) => void) => function CustomFieldTemplate(props: any) {
   const { id, classNames, label, children } = props;
   const key = id.split("root_metrics_")[1];
   const isNew = Object.keys(METRIC_FIELDS).some(key => id.includes(key));
   const isBool = (id as string).includes("yes / no");
   const isNewBool = (id as string).includes("yes / no") && isNew;
+  const isMetricsEmpty = id === "root_metrics" && Object.keys(props.children[0].props.formData).length === 0;
   const renderInput = () => <EditableInput onSave={(title: string) => onSaveTitle(key, title)} value={label === key ? "" : label} key={id} />;
   return (
-    <div className={classNames}>
+    <div className={classNames} id={id}>
       {!isNew && label && <label htmlFor={id}>{label}</label>}
       {isNew && !isBool && renderInput()}
       {!isNewBool && children}
@@ -256,15 +332,14 @@ const FieldTemplate = (addButton: any, onSaveTitle: (id: string, title: string) 
           </label>
         </div>
       )}
-      {id === "root_metrics" && addButton()}
+      {isMetricsEmpty && <Link className="add-button" to={`/${BASE_ROUTE}/${date}?viewMetrics=true`}>Add metrics</Link>}
     </div>
   );
 }
 
-
 function ArrayFieldTemplate(props: any) {
   return (
-    <div>
+    <div id={props.id}>
       <legend id="root_metrics__title">{props.title}</legend>
       <p id="root_metrics__description" className="field-description">Why weren't these tasks finished?</p>
       {props.items.map((element: any) => (
@@ -274,11 +349,14 @@ function ArrayFieldTemplate(props: any) {
   );
 }
 
+const FORM_SEGMENTS = ["metrics", "tasks"]
+
 @inject("history")
 @inject("journal")
 @observer
 export default class Form extends React.Component<IFormProps, IFormState> {
   state = {
+    selectedSegment: "metrics",
     addingMetrics: false,
     addedMetrics: [] as { type: string, value: ICreateMetric, id: string }[]
   };
@@ -292,8 +370,8 @@ export default class Form extends React.Component<IFormProps, IFormState> {
     this.journalState.updateFormState(this.date);
   }
 
-  close = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}`);
+  get date() {
+    return moment(this.props.date, "MMMD").startOf('day');
   }
 
   get journalState() {
@@ -309,6 +387,8 @@ export default class Form extends React.Component<IFormProps, IFormState> {
     if (!form) this.journalState.updateFormState(this.date, false);
     return form;
   }
+
+  selectSegment = (segment: string) => this.setState({ selectedSegment: segment });
 
   updateUiSchema = () => {
     const form = this.formData;
@@ -339,8 +419,30 @@ export default class Form extends React.Component<IFormProps, IFormState> {
     }
   }
 
-  get date() {
-    return moment(this.props.date, "MMMD").startOf('day');
+  clickAddMetrics = () => {
+    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}?viewMetrics=true`);
+  }
+
+  onSaveTitle = (id: string, title: string) => {
+    const addedMetrics = this.state.addedMetrics.slice(0);
+    const idx = addedMetrics.findIndex(({ id: id2 }) => id2 === id);
+    if (idx >= 0) {
+      addedMetrics[idx].value.title = title;
+      this.setState({
+        addedMetrics
+      });
+    }
+  }
+
+  close = () => {
+    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}`);
+  }
+
+  change = (event: IChangeEvent<IForm>) => {
+    const { edit, formData } = event;
+    if (edit) {
+      this.journalStore.assign({ forms: { ...this.journalStore.forms, [formData.id!]: formData } });
+    }
   }
 
   submit = async () => {
@@ -377,80 +479,34 @@ export default class Form extends React.Component<IFormProps, IFormState> {
     this.close();
   }
 
-  change = (event: IChangeEvent<IForm>) => {
-    const { edit, formData } = event;
-    if (edit) {
-      this.journalStore.assign({ forms: { ...this.journalStore.forms, [formData.id!]: formData } });
-    }
-  }
-
-  clickAddMetrics = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}?viewMetrics=true`);
-  }
-
-  closeAddMetrics = () => {
-    if (this.metricsContainerRef && this.metricsContainerRef.current) {
-      this.metricsContainerRef.current.classList.remove("adding-metrics");
-    }
-  };
-
-  onBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget as any)) {
-      // this.closeAddMetrics();
-    }
-  }
-
-  onAddField = (event: any) => {
-    if (!event.target) return;
-    const { label: value } = event.target;
-    // this.closeAddMetrics();
-    if (value) {
-      const schema = Object.assign({}, METRIC_FIELDS[value], { label: null });
-      this.setState({
-        addedMetrics:
-          this.state.addedMetrics.concat([{ type: value, value: schema, id: this.state.addedMetrics.length + value }] as any)
-      })
-    }
-  };
-
-  onSaveTitle = (id: string, title: string) => {
-    const addedMetrics = this.state.addedMetrics.slice(0);
-    const idx = addedMetrics.findIndex(({ id: id2 }) => id2 === id);
-    if (idx >= 0) {
-      addedMetrics[idx].value.title = title;
-      this.setState({
-        addedMetrics
-      });
-    }
-  }
-
-  renderAddButton = () => {
-    return (
-      <AddMetricsContainer ref={this.metricsContainerRef}>
-        <button type="button" className="add-button" onClick={this.clickAddMetrics}>Add metrics</button>
-        <select className="add-button" ref={this.selectRef} onClick={this.onAddField} onBlur={this.onBlur} onFocus={(e: any) => { e.target.size = '6' }}>
-          {Object.keys(METRIC_FIELDS).map((key, index) => <option value={key} key={index}>{key}</option>)}
-        </select>
-      </AddMetricsContainer>
-    )
-  }
-
-  fieldTemplate = FieldTemplate(this.renderAddButton.bind(this), this.onSaveTitle);
+  fieldTemplate = FieldTemplate(this.props.date, this.onSaveTitle);
   render() {
     this.updateUiSchema();
     this.updateMetricsSchema();
 
     return (
       <Container isOpen close={this.close}>
-        <ReactForm
-          schema={this.metricsSchema!}
-          uiSchema={this.uiSchema}
-          formData={this.formData}
-          FieldTemplate={this.fieldTemplate}
-          ArrayFieldTemplate={ArrayFieldTemplate}
-          onSubmit={this.submit}
-          onChange={this.change}
-        />
+        <Title>Daily Review</Title>
+        <Content className={`selected-${this.state.selectedSegment}`}>
+          <FormNavigation>
+            {FORM_SEGMENTS.map(segment =>
+              <li
+                onClick={() => this.selectSegment(segment)}
+                className={`${segment === this.state.selectedSegment ? "selected" : ""}`}
+              >
+                {segment}
+              </li>)}
+          </FormNavigation>
+          <ReactForm
+            schema={this.metricsSchema!}
+            uiSchema={this.uiSchema}
+            formData={this.formData}
+            FieldTemplate={this.fieldTemplate}
+            ArrayFieldTemplate={ArrayFieldTemplate}
+            onSubmit={this.submit}
+            onChange={this.change}
+          />
+        </Content>
       </Container>
     );
   }
