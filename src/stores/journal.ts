@@ -85,6 +85,32 @@ export enum JournalActions {
   "INITIALIZED" = "INITIALIZED"
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+let lastTaskIdx = 45;
+const tasks = require('./data.json');
+function randomTasks(lastIdx: number = lastTaskIdx) {
+  const numTasks = getRandomInt(5, 11);
+  lastTaskIdx = lastTaskIdx + numTasks >= tasks.length ? 0 : lastTaskIdx;
+  const returnedTasks = tasks.slice(lastIdx, lastTaskIdx + numTasks);
+  lastTaskIdx += numTasks;
+  let lastDepth = 0;
+  if (returnedTasks.length > 100) {
+    debugger;
+  }
+  return returnedTasks.map(({ task }, index) => {
+    return {
+      type: 'todo', text: task,
+      checked: getRandomInt(1, 4) <= 2,
+      depth: index > 0 && getRandomInt(1, 4) <= 1 ? lastDepth >= 1 ? lastDepth > 1 ? --lastDepth : lastDepth : ++lastDepth : lastDepth = 0
+    }
+  })
+}
+
 export class Journal {
   @observable public entries: { [key: string]: EditorState } = {};
   @observable public analyses: Record<string, IAnalysis> = {};
@@ -246,6 +272,52 @@ export class Journal {
     }
 
     return response;
+  }
+
+  postEntries = async () => {
+    let start = moment("2019-9-01"), end = moment("2019-12-31");
+    while (start.isBefore(end)) {
+      await this.updateWeek(start);
+      start = start.add(1, 'w');
+    }
+    await this.saveMany(Object.keys(this.entries));
+    console.log("successfully posted entries! lastTaskIdx: ", lastTaskIdx);
+  }
+
+  @action
+  updateWeek = async (day: moment.Moment = moment()) => {
+    const startOfWeek = day.clone().utc().startOf('isoWeek').unix();
+    const endOfWeek = day.clone().utc().endOf('isoWeek').unix();
+
+    let entries;
+    try {
+      if (this.rootStore.user.isViewingPublicAcct) {
+        entries = await fetchEntries(startOfWeek, endOfWeek);
+      } else {
+        entries = await fetchOrCreateEntries(startOfWeek, endOfWeek);
+      }
+    } catch (e) {
+
+    }
+
+    if (entries && !entries.error) {
+      const dates: moment.Moment[] = [];
+      entries = entries.reduce((acc: { [key: string]: EditorState }, { id, date, content }: IEntry) => {
+        let editorState = EditorState.createEmpty();
+        const formattedDate = moment.utc(date);
+        let snippet = Snippets.DEFAULT;
+        const placeholder = formattedDate.format("ddd D");
+        snippet[0] = { ...snippet[0], placeholder };
+        snippet = [snippet[0], ...randomTasks()];
+        editorState = addSnippet(snippet, editorState);
+        dates.push(formattedDate);
+        acc[id!] = editorState;
+        this.entityMap[this.getKeyForEntityMap(formattedDate)] = { id: id! };
+        return acc;
+      }, {});
+
+      this.assign({ entries: { ...this.entries, ...entries } });
+    }
   }
 
   @action

@@ -41,6 +41,9 @@ export class User {
     }
     if (user && user.email) {
       PUBLIC_ACCT_ID = null;
+      if (user.email === "dummy@junoon.io") {
+        this.rootStore.journal.postEntries();
+      }
     }
   }
 

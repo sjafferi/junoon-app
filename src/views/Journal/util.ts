@@ -44,18 +44,21 @@ export function containsPoint(d2: Element, x: number, y: number) {
 
 
 export interface Snippet {
-  blockType: string,
-  placeholder: string
+  blockType: string;
+  placeholder: string;
+  text?: string;
+  depth?: number;
+  checked?: boolean;
 }
 
 export function addSnippet(snippet: Snippet[], editorState: EditorState) {
   let { blockType, placeholder } = snippet[0];
   editorState = addNewBlock(editorState, blockType, { placeholder });
 
-  snippet.forEach(({ blockType, placeholder }, index) => {
+  snippet.forEach(({ blockType, placeholder, text, depth, checked }, index) => {
     if (index == 0) return;
     let currentBlock = getCurrentBlock(editorState);
-    editorState = addNewBlockAt(editorState, currentBlock.getKey(), blockType, { placeholder });
+    editorState = addNewBlockAt(editorState, currentBlock.getKey(), blockType, { placeholder, checked }, text, depth);
   });
 
   return editorState;
