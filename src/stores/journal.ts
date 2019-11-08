@@ -223,7 +223,12 @@ export class Journal {
     let response;
     try {
       const startDate = start.clone().utc().startOf('day');
-      const endDate = start.clone().utc().endOf('isoWeek')
+      const today = convertToUTC(moment()).endOf('day');
+      let endDate = start.clone().utc().endOf('isoWeek')
+      if (startDate.isSameOrAfter(today)) return;
+      if (endDate.isSameOrAfter(today)) {
+        endDate = today;
+      }
       response = await fetchMetricValues(startDate.unix(), endDate.unix());
     } catch (e) {
 
@@ -252,7 +257,7 @@ export class Journal {
   fetchWeek = async (day: moment.Moment = moment()) => {
     const startOfWeek = day.clone().utc().startOf('isoWeek').unix();
     const endOfWeek = day.clone().utc().endOf('isoWeek').unix();
-
+    const today = convertToUTC(moment()).endOf('day');
     let entries, forms;
     try {
       if (this.rootStore.user.isViewingPublicAcct) {
@@ -260,7 +265,14 @@ export class Journal {
       } else {
         entries = await fetchOrCreateEntries(startOfWeek, endOfWeek);
       }
-      forms = await fetchForms(startOfWeek, endOfWeek);
+      const startDate = day.clone().utc().startOf('isoWeek');
+      let endDate = day.clone().utc().endOf('isoWeek');
+      if (!startDate.isSameOrAfter(today)) {
+        if (endDate.isSameOrAfter(today)) {
+          endDate = today;
+        }
+        forms = await fetchForms(startOfWeek, endDate.unix());
+      }
     } catch (e) {
 
     }

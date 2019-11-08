@@ -8,7 +8,8 @@ import { Switch, Route, Redirect, withRouter } from "react-router-dom";
 import { EditorState } from 'draft-js';
 import { Journal as JournalStore, RouterStore, User } from 'stores';
 import { LoginModal } from 'ui'
-import { Action, History, Location, UnregisterCallback } from 'history';
+import { History } from 'history';
+import { addQueryParam } from "./util";
 import Editor from "./Editor";
 import Weekly from "./Weekly";
 import State from "./state";
@@ -59,7 +60,7 @@ export default class Journal extends React.Component<IProps, IState> {
   }
 
   navigateToCreateMetrics = () => {
-    this.props.history!.push({ search: "?viewMetrics=true" });
+    this.props.history!.push({ search: addQueryParam('viewMetrics', true) });
   }
 
   getEntry = (id: number) => {

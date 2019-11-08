@@ -8,10 +8,10 @@ import { toJS } from 'mobx';
 import { History } from "history";
 import { inject, observer } from "mobx-react";
 import { IErrorResponse } from 'api';
-import { Journal, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
+import { Journal, User, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
 import { Colors, Header2, Modal, EditableInput } from 'ui';
 import { FormStyles } from "./FormStyles";
-import { transformMetricToSchema, transformMetricToUISchema } from "../util";
+import { addQueryParam, transformMetricToSchema, transformMetricToUISchema } from "../util";
 import { BASE_ROUTE } from "../index";
 import State from "../state";
 
@@ -21,6 +21,7 @@ interface IFormProps {
   history?: History;
   router?: RouterStore;
   journal?: Journal;
+  user?: User;
   navigateToCreateMetrics: () => void;
 }
 
@@ -332,7 +333,7 @@ const FieldTemplate = (date: string, onSaveTitle: (id: string, title: string) =>
           </label>
         </div>
       )}
-      {isMetricsEmpty && <Link className="add-button" to={`/${BASE_ROUTE}/${date}?viewMetrics=true`}>Add metrics</Link>}
+      {isMetricsEmpty && <Link className="add-button" to={`/${BASE_ROUTE}/${date}${addQueryParam('viewMetrics', true)}`}>Add metrics</Link>}
     </div>
   );
 }
@@ -353,6 +354,7 @@ const FORM_SEGMENTS = ["metrics", "tasks"]
 
 @inject("history")
 @inject("journal")
+@inject("user")
 @observer
 export default class Form extends React.Component<IFormProps, IFormState> {
   state = {
@@ -419,10 +421,6 @@ export default class Form extends React.Component<IFormProps, IFormState> {
     }
   }
 
-  clickAddMetrics = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}?viewMetrics=true`);
-  }
-
   onSaveTitle = (id: string, title: string) => {
     const addedMetrics = this.state.addedMetrics.slice(0);
     const idx = addedMetrics.findIndex(({ id: id2 }) => id2 === id);
@@ -435,7 +433,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
   }
 
   close = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}`);
+    this.props.history!.push(`/${BASE_ROUTE}/${this.props.date}${location.search}`);
   }
 
   change = (event: IChangeEvent<IForm>) => {
@@ -446,6 +444,10 @@ export default class Form extends React.Component<IFormProps, IFormState> {
   }
 
   submit = async () => {
+    if (this.props.user!.isViewingPublicAcct) {
+      this.close();
+      return;
+    }
     let response, error;
     const { addedMetrics } = this.state;
     if (addedMetrics.length) {

@@ -126,3 +126,7 @@ export const groupBy = (key: string) => (array: any[]) =>
     }),
     {}
   );
+
+export const addQueryParam = (param: string, value: any) => {
+  return `${location.search + "&" || '?'}${param}=${value}`;
+}

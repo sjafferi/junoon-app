@@ -4,7 +4,8 @@ import { RootStore } from './index';
 import { login, signup, signout, fetchUser } from 'api'
 import { getParameterByName } from "../util";
 
-export const PUBLIC_ACCT_PARAM_NAME = 'uid';
+export const PUBLIC_ACCT_PARAM_NAME = 'sample';
+const DUMMY_ACCT_ID = '0638b3b2-6821-425f-b6c0-99dca352ced5';
 export let PUBLIC_ACCT_ID: string | null = null;
 
 export interface IUser {
@@ -19,11 +20,11 @@ export class User {
   @observable public isViewingPublicAcct = false;
 
   constructor(protected rootStore: RootStore) {
-    const publicAcctId = getParameterByName(PUBLIC_ACCT_PARAM_NAME);
-    if (publicAcctId) {
-      this.setUser({ id: publicAcctId, isPublic: true });
+    const viewingSampleData = getParameterByName(PUBLIC_ACCT_PARAM_NAME);
+    if (viewingSampleData) {
+      this.setUser({ id: DUMMY_ACCT_ID, isPublic: true });
       this.assign({ isViewingPublicAcct: true });
-      PUBLIC_ACCT_ID = publicAcctId;
+      PUBLIC_ACCT_ID = DUMMY_ACCT_ID;
     } if (document.cookie) {
       this.validateUser();
     } else {
@@ -39,7 +40,7 @@ export class User {
     } else {
       setTimeout(() => this.setUser(user), 200);
     }
-    if (user && user.email) {
+    if (!this.isViewingPublicAcct && user && user.email) {
       PUBLIC_ACCT_ID = null;
     }
   }

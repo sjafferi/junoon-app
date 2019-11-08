@@ -2,7 +2,9 @@ import * as React from 'react';
 import * as moment from 'moment';
 import styled from "styled-components";
 import { Link } from 'react-router-dom';
+import { observer } from "mobx-react";
 import { Colors } from 'ui';
+import { Journal, User } from 'stores';
 import { BASE_ROUTE } from "../index";
 
 const Container = styled.div`
@@ -30,6 +32,9 @@ const DateRange = styled(Column)`
     padding: 0 20px;
     color: #7b7b7b;
   }
+  .disabled {
+    cursor: not-allowed;
+  }
 `;
 
 const Title = styled.h3`
@@ -43,8 +48,11 @@ interface IHeaderProps {
   LeftElement: React.ReactNode;
   RightElement: React.ReactNode;
   isLoggedIn: boolean;
+  journal?: Journal;
+  user?: User;
 }
 
+@observer
 export default class Header extends React.Component<IHeaderProps, {}> {
   get prevWeek() {
     const clone = this.props.start.clone().subtract(1, 'w');
@@ -66,20 +74,43 @@ export default class Header extends React.Component<IHeaderProps, {}> {
     return `${start} - ${end}`;
   }
 
+  get showLeftNav() {
+    if (!this.props.user!.isViewingPublicAcct) return true;
+    const prevWeek = this.props.start.clone().subtract(1, 'w');
+    return !!this.props.journal!.getEntryForDay(prevWeek);
+  }
+
+  get showRightNav() {
+    if (!this.props.user!.isViewingPublicAcct) return true;
+    const nextWeek = this.props.start.clone().add(1, 'w');
+    return this.props.journal!.getEntryForDay(nextWeek);
+  }
+
   render() {
+    const { isLoggedIn } = this.props;
     const isAnalyzeActive = location.pathname.includes("analyze");
     const pathnameSuffix = isAnalyzeActive ? "/analyze" : "";
+    const currUrl = `${location.pathname}${location.search}`;
+    const showLeftNav = this.showLeftNav;
+    const showRightNav = this.showRightNav;
+
     return (
       <Container>
         <Column>
           {this.props.LeftElement}
         </Column>
-        <DateRange className={`${this.props.isLoggedIn ? "logged-in" : ""}`}>
-          <Link to={`/${BASE_ROUTE}/${this.prevWeek}${pathnameSuffix}`} >
+        <DateRange className={`${isLoggedIn ? "logged-in" : ""}`}>
+          <Link
+            className={`${!showLeftNav ? "disabled" : ""}`}
+            to={showLeftNav ? `/${BASE_ROUTE}/${this.prevWeek}${pathnameSuffix}${location.search}` : currUrl}
+          >
             <i className="fa fa-chevron-left"></i>
           </Link>
           <Title>{this.week}</Title>
-          <Link to={`/${BASE_ROUTE}/${this.nextWeek}${pathnameSuffix}`} >
+          <Link
+            className={`${!showRightNav ? "disabled" : ""}`}
+            to={showRightNav ? `/${BASE_ROUTE}/${this.nextWeek}${pathnameSuffix}${location.search}` : currUrl}
+          >
             <i className="fa fa-chevron-right"></i>
           </Link>
         </DateRange>

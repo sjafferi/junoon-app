@@ -15,8 +15,6 @@ import Editor from '../Editor';
 import State from "../state";
 import { BASE_ROUTE } from "../index";
 
-const { useEffect } = React;
-
 import 'react-toastify/dist/ReactToastify.css';
 import "flexboxgrid/dist/flexboxgrid.min.css";
 
@@ -144,6 +142,7 @@ const ScrollUp: React.SFC = () => (
 @inject("router")
 @inject("viewport")
 @inject("journal")
+@inject("user")
 @observer
 export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> {
   state = {
@@ -169,7 +168,11 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     this.clearAutosave = this.startAutosave();
   }
 
-  componentDidMount() {
+  componentWillUnmount() {
+    this.clearAutosave();
+  }
+
+  setHash = () => {
     const prevHash = location.hash;
     location.hash = "";
     setTimeout(() => {
@@ -177,10 +180,6 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
         location.hash = prevHash || ("#" + moment().format("MMMD"));
       }
     }, 500)
-  }
-
-  componentWillUnmount() {
-    this.clearAutosave();
   }
 
   get viewport() {
@@ -227,6 +226,10 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
 
   startAutosave = () => {
     const timer = setInterval(() => {
+      if (this.props.user!.isViewingPublicAcct) {
+        clearInterval(timer);
+        return;
+      }
       this.onSave(false);
     }, 5000);
     return () => clearInterval(timer);
@@ -284,7 +287,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   onSave = async (showToast?: boolean) => {
-    if (!this.changed || !this.journalStore.isLoggedIn) return;
+    if (!this.changed || !this.journalStore.isLoggedIn || this.props.user!.isViewingPublicAcct) return;
     await this.journalStore.saveMany(this.keys);
     setTimeout(() => {
       if (showToast) toast("Save successful!");

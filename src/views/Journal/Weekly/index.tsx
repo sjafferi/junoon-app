@@ -9,6 +9,7 @@ import { Journal, User } from 'stores';
 import { Action, History, Location, UnregisterCallback } from "history";
 import { Colors, Primary, HeaderNavigationText, Spinner } from 'ui';
 import { BASE_ROUTE } from "../index";
+import { addQueryParam } from "../util";
 import State from "../state";
 import Header from "./Header";
 import WeeklyEntries from "./Entries";
@@ -130,15 +131,15 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   navigateToCreateMetrics = () => {
-    this.props.history!.push({ search: "?viewMetrics=true" });
+    this.props.history!.push({ search: addQueryParam('viewMetrics', true) });
   }
 
   navigateToAnalysis = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.start}/analyze`);
+    this.props.history!.push(`/${BASE_ROUTE}/${this.start}/analyze${location.search}`);
   }
 
   navigateToAgenda = () => {
-    this.props.history!.push(`/${BASE_ROUTE}/${this.start}`);
+    this.props.history!.push(`/${BASE_ROUTE}/${this.start}${location.search}`);
   }
 
   renderHeaderLeft = () => {
@@ -167,7 +168,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     return (
       <HeaderActions>
         {!loggedIn && (
-          <Primary onClick={() => this.props.history!.push({ search: "?login=true" })}>Login</Primary>
+          <Primary onClick={() => this.props.history!.push({ search: addQueryParam('login', true) })}>Login</Primary>
         )}
         {loggedIn && (
           <Primary onClick={() => this.props.user!.signout()}>Sign out</Primary>
@@ -186,6 +187,8 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           LeftElement={this.renderHeaderLeft()}
           RightElement={this.renderHeaderRight()}
           start={this.props.start}
+          user={this.props.user}
+          journal={this.props.journal}
           isLoggedIn={this.journal.isLoggedIn}
         />
         {!ready && <Spinner />}

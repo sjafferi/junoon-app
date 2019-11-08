@@ -2,14 +2,15 @@ import * as React from 'react';
 import * as moment from 'moment';
 import styled from 'styled-components';
 import Select from 'react-select'
-import { observer } from "mobx-react";
+import { observer, inject } from "mobx-react";
 import { keys, sortBy } from "lodash";
 import { Colors, Primary, Modal, EditableInput, Text, Header3, Spacer } from "ui";
-import { IMetric, Journal } from "stores";
+import { IMetric, Journal, User } from "stores";
 import { METRIC_FIELDS } from "../Form";
 import { History } from "history";
 
 interface ICRUDTableProps {
+  user?: User;
   journal: Journal;
   history: History;
   isOpen?: boolean;
@@ -217,6 +218,7 @@ function getMetricLabel(metric: IMetric) {
 
 const metricOptions = ["numeric", "text", "yes / no", "scale (1 - 5)"].map(label => ({ label, value: label }));
 
+@inject('user')
 @observer
 export default class CRUDTable extends React.Component<ICRUDTableProps, ICRUDTableState> {
   state: ICRUDTableState = {
@@ -273,6 +275,10 @@ export default class CRUDTable extends React.Component<ICRUDTableProps, ICRUDTab
   }
 
   save = () => {
+    if (this.props.user!.isViewingPublicAcct) {
+      this.close();
+      return;
+    }
     const invalidMetrics: Record<string, { type: boolean, title: boolean }> = {};
     const changedMetrics: Record<string, IMetric> = {};
     const addedMetrics: IMetric[] = [];
