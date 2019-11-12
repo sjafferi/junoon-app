@@ -1,10 +1,11 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { observer } from "mobx-react";
-import { IAnalysis, IQuery } from 'stores';
+import { observer, inject } from "mobx-react";
+import { IAnalysis, IQuery, User } from 'stores';
 import { Header4, Row as RowUI, Primary, Colors } from 'ui'
 
 interface IProps {
+  user?: User;
   analysis?: IAnalysis;
   onQueryChange: (payload: Partial<IQuery>) => void
 }
@@ -103,7 +104,7 @@ const Insight = styled.span`
   }
 `;
 
-
+@inject('user')
 @observer
 export default class Summary extends React.Component<IProps> {
   constructor(props: any) {
@@ -131,7 +132,7 @@ export default class Summary extends React.Component<IProps> {
     const { value, label, id, metricId, functions, insight } = query;
     return (
       <Row key={index}>
-        <FunctionsContainer>
+        {!this.props.user!.isViewingPublicAcct && <FunctionsContainer>
           {functions && functions.length > 1 && functions.map((fn, index) =>
             <Function
               key={index}
@@ -141,7 +142,7 @@ export default class Summary extends React.Component<IProps> {
               {fn}
             </Function>
           )}
-        </FunctionsContainer>
+        </FunctionsContainer>}
         <label>{label}</label>
         <span>{value}</span>
         {insight && insight.perc > 0 && insight.delta !== 0 && (

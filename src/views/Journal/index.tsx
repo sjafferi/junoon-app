@@ -14,6 +14,7 @@ import Editor from "./Editor";
 import Weekly from "./Weekly";
 import State from "./state";
 import Form from "./Form";
+import SampleInfo from "./components/SampleInfo";
 
 interface IProps {
   journal?: JournalStore;
@@ -119,6 +120,7 @@ export default class Journal extends React.Component<IProps, IState> {
         )}
         />
         {!this.props.user!.isLoggedIn && this.params.login && <LoginModal />}
+        <SampleInfo />
       </Container>
     );
   }
