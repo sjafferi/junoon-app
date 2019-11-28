@@ -41,7 +41,7 @@ const DateRange = styled(Column)`
 const Title = styled.h3`
   width: 135px;
   text-align: center;
-  font-size: 1.2em;
+  font-size: 1.185em;
   color: ${Colors.darkLightGrey};
 `;
 

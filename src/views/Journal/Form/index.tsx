@@ -100,6 +100,7 @@ const Container = styled(Modal)`
       }
     }
     #root_metrics {
+      width: 100%;
       .form-group {
         margin-bottom: 21px !important;
       }
