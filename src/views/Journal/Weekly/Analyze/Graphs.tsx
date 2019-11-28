@@ -49,7 +49,7 @@ const Legend = styled.div`
     background: ${Colors.chartAverageGrey};
   }
 
-  ${breakpoint.down('ml')`{
+  ${breakpoint.down('l')`{
     flex-direction: column-reverse;
     span:first-child {
       margin-top: 12.5px;

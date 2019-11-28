@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { sortBy, entries } from "lodash";
 import { toJS } from "mobx";
 import { inject, observer } from "mobx-react";
-import { Colors, Primary, Header4, Spinner, Text, TextLink } from "ui";
+import { Colors, Primary, Header4, Spinner, Text, TextLink, SmallScrollbar } from "ui";
 import { Journal, IMetricValue, IQuery } from "stores";
 import { MetricsEmptyState } from "icons";
 import { convertToUTC, groupBy } from "../../util";
@@ -34,15 +34,11 @@ const Container = styled.div`
   padding-bottom: 50px;
   overflow: scroll;
   position: relative;
-
-  > div {
-    margin-right: 3vw;
-  }
+  ${SmallScrollbar}
 `;
 
 const TabContainer = styled.div`
   box-sizing: content-box;
-  margin-right: 3vw;
   > button:first-child {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;

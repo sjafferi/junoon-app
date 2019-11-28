@@ -9,7 +9,7 @@ import { History } from "history";
 import { inject, observer } from "mobx-react";
 import { IErrorResponse } from 'api';
 import { Journal, User, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
-import { Colors, Header2, Modal, EditableInput } from 'ui';
+import { Colors, Header2, Modal, EditableInput, SmallScrollbar } from 'ui';
 import { FormStyles } from "./FormStyles";
 import { addQueryParam, transformMetricToSchema, transformMetricToUISchema } from "../util";
 import { BASE_ROUTE } from "../index";
@@ -37,16 +37,8 @@ const Container = styled(Modal)`
   overflow: hidden;
   form {
     ${FormStyles}
-    &::-webkit-scrollbar-thumb {
-      border-radius: 10px;
-      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-      background-color: ${Colors.lighterGrey};
-    }
-    &::-webkit-scrollbar {
-      width: 5px;
-      background-color: transparent;
-      box-shadow: none;
-    }
+    ${SmallScrollbar}
+
     width: 100%;
     max-height: calc(100% - 20px);
     overflow: scroll;

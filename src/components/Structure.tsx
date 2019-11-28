@@ -58,3 +58,16 @@ export const ButtonStyle = css`
     width: 80%;
   }`}
 `;
+
+export const SmallScrollbar = css`
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: ${Colors.lighterGrey};
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    background-color: transparent;
+    box-shadow: none;
+  }
+`

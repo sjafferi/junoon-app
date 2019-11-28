@@ -5,8 +5,6 @@ import {
   EditorState,
   RichUtils,
   SelectionState,
-  ContentBlock,
-  genKey,
   Modifier,
 } from 'draft-js';
 import {
@@ -41,6 +39,7 @@ import {
   addNewBlockAt,
   isCursorBetweenLink,
 } from './model';
+import { HEADER_HEIGHT } from 'consts';
 
 /*
 
@@ -258,10 +257,10 @@ class MediumDraftEditor extends React.Component {
       const parentElement = window.getSelection().focusNode.parentElement;
       let { top } = getElementPosition(parentElement) || {};
       const initialTop = top;
-      if (!isNaN(top) && top > 50) {
+      if (!isNaN(top) && top > HEADER_HEIGHT) {
         const { top: topBound } = getElementPosition(this.rootRow);
         const scrollTop = window.scrollY > topBound ? this.rootRow.scrollTop + window.scrollY : this.rootRow.scrollTop;
-        const bottomBound = this.props.isTopRow ? this.rootRow.clientHeight + 50 : window.innerHeight;
+        const bottomBound = this.props.isTopRow ? this.rootRow.clientHeight + HEADER_HEIGHT : window.innerHeight;
         top -= scrollTop;
         top = Math.floor(top) - 20;
         const isInView = top >= topBound && top <= bottomBound;

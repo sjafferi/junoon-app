@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactModal from 'react-modal';
 import styled from 'styled-components';
-import { Colors } from 'ui'
+import { Colors, SmallScrollbar } from 'ui'
 
 interface IFormProps {
   isOpen: boolean;
@@ -20,16 +20,7 @@ const Container = styled(ReactModal)`
   overflow-y: scroll;
   border: 1px solid #d4d4d4;
 
-  &::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-    background-color: ${Colors.lighterGrey};
-  }
-  &::-webkit-scrollbar {
-    width: 5px;
-    background-color: transparent;
-    box-shadow: none;
-  }
+  ${SmallScrollbar}
 
   .close {
     cursor: pointer;

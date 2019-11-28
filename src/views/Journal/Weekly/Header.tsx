@@ -6,10 +6,11 @@ import { observer } from "mobx-react";
 import { Colors } from 'ui';
 import { Journal, User } from 'stores';
 import { BASE_ROUTE } from "../index";
+import { HEADER_HEIGHT } from 'consts';
 
 const Container = styled.div`
-  width: 91vw;
-  height: 50px;
+  width: 100vw;
+  height: ${HEADER_HEIGHT}px;
   padding: 0 30px;
   display: flex;
   box-sizing: border-box;
@@ -40,6 +41,7 @@ const DateRange = styled(Column)`
 const Title = styled.h3`
   width: 135px;
   text-align: center;
+  font-size: 1.2em;
   color: ${Colors.darkLightGrey};
 `;
 

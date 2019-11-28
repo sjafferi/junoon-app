@@ -20,13 +20,14 @@ const onHover = css`
 `;
 
 const Button = styled.button`
-  padding: 6px;
+  padding: 7px;
   height: 28px;
   min-width: 60px;
-  font-size: 12px;
+  font-size: 13px;
   text-align: center;
   color: ${(props: any) => props.textColor || Colors.mutedTextGrey};
-  border-color: ${(props: any) => props.borderColor || Colors.grey};
+  border: 1px solid ${(props: any) => props.borderColor || Colors.grey};
+  background: white;
   cursor: pointer;
   ${props => !props.disabled ? onHover : "cursor: not-allowed;"}
   

@@ -40,10 +40,10 @@
     // Custom control
     .control__indicator {
         position: absolute;
-        top: 4px;
+        top: 3px;
         left: 0;
-        height: 15px;
-        width: 15px;
+        height: 16px;
+        width: 16px;
         border: 1px solid black;
         cursor: pointer;
         user-select: none;
@@ -80,9 +80,9 @@
     }
     .control--checkbox .control__indicator:after {
         left: 5px;
-        top: 1.1px;
+        top: 1px;
         width: 4px;
-        height: 9px;
+        height: 10px;
         border: solid #fff;
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);

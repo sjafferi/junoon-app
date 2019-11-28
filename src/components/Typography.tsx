@@ -97,7 +97,7 @@ export const HeaderNavigationText = styled(Header2)`
   cursor: pointer;
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
-  font-size: 1.5em;
+  font-size: 1.65em;
   letter-spacing: 1.25px;
   margin: 0;
   margin-top: 5px;

@@ -97,7 +97,7 @@ module.exports = {
       template: "./src/index.html",
       title: TITLE,
       environment: NODE_ENV,
-      zoom: NODE_ENV === "production" ? 1.1 : 1.1,
+      // zoom: NODE_ENV === "production" ? 1.1 : 1.1,
       filename: "index.html"
     }),
     new ImageminPlugin({

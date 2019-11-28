@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Select from 'react-select'
 import { observer, inject } from "mobx-react";
 import { keys, sortBy } from "lodash";
-import { Colors, Primary, Modal, EditableInput, Text, Header3, Spacer } from "ui";
+import { Colors, Primary, Modal, EditableInput, Text, Header3, Spacer, SmallScrollbar } from "ui";
 import { IMetric, Journal, User } from "stores";
 import { METRIC_FIELDS } from "../Form";
 import { History } from "history";
@@ -94,15 +94,9 @@ const TableContainer = styled.div`
   overflow-y: scroll;
   overflow-x: hidden;
 
-  &::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-    background-color: ${Colors.lighterGrey};
-  }
+  ${SmallScrollbar}
   &::-webkit-scrollbar {
     width: 2px;
-    background-color: transparent;
-    box-shadow: none;
   }
 
   .error {

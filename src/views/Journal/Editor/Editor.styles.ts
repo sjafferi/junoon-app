@@ -8,11 +8,10 @@ export const Container = styled.div`
   font-size: 12px;
 
   .md-block {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.6;
     color: #333;
-    padding-top: 3px;
-    padding-bottom: 3px;
+    padding: 5px 0;
 
     user-select: none;
     -webkit-user-select: none;

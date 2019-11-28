@@ -195,7 +195,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   get columnWidth() {
-    return (this.viewport.width * 0.9) / 3;
+    return (this.viewport.width * 0.99) / 3;
   }
 
   get rowHeight() {
