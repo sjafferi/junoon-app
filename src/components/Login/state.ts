@@ -1,4 +1,4 @@
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, toJS } from 'mobx';
 import { assign } from 'lodash'
 import { User, RouterStore } from 'stores';
 import * as joi from 'joi';
@@ -52,9 +52,8 @@ export default class LoginState {
     const action = this.inSignup ? this.user!.signup : this.user!.login;
     const { result, error } = await action(this.fields);
     this.loading = false;
-
     if (error) {
-      this.errors.server = error.message;
+      this.assign({ errors: { ...this.errors, server: error } })
       return false;
     }
 

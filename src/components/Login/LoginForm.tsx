@@ -44,10 +44,11 @@ const Form = styled.form`
   }
 
   p.error {
+    padding: 5px;
     margin: 0;
-    padding: 0;
-    bottom: 16px;
+    bottom: 9px;
     font-size: 9px;
+    text-align: center;
     position: absolute;
     color: ${Colors.mutedTextGrey};
   }

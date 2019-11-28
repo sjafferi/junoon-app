@@ -89,10 +89,16 @@ module.exports = {
       "process.env.PORT": JSON.stringify(PORT),
       "process.env.API_HOST": JSON.stringify(API_HOST),
     }),
-    new CopyWebpackPlugin([{
-      from: "./src/assets/css",
-      to: "css"
-    }]),
+    new CopyWebpackPlugin([
+      {
+        from: "./src/assets/css",
+        to: "css"
+      },
+      {
+        from: "./src/assets/favicon",
+        to: ""
+      },
+    ]),
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       title: TITLE,
