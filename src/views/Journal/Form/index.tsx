@@ -305,7 +305,7 @@ export const METRIC_FIELDS: Record<string, ICreateMetric> = {
 };
 
 
-const FieldTemplate = (date: string, onSaveTitle: (id: string, title: string) => void) => function CustomFieldTemplate(props: any) {
+const FieldTemplate = (navigateToCreateMetrics: IFormProps["navigateToCreateMetrics"], onSaveTitle: (id: string, title: string) => void) => function CustomFieldTemplate(props: any) {
   const { id, classNames, label, children } = props;
   const key = id.split("root_metrics_")[1];
   const isNew = Object.keys(METRIC_FIELDS).some(key => id.includes(key));
@@ -326,7 +326,7 @@ const FieldTemplate = (date: string, onSaveTitle: (id: string, title: string) =>
           </label>
         </div>
       )}
-      {isMetricsEmpty && <Link className="add-button" to={`/${BASE_ROUTE}/${date}${addQueryParam('viewMetrics', true)}`}>Add metrics</Link>}
+      {isMetricsEmpty && <button type="button" className="add-button" onClick={navigateToCreateMetrics}>Add metrics</button>}
     </div>
   );
 }
@@ -474,7 +474,7 @@ export default class Form extends React.Component<IFormProps, IFormState> {
     this.close();
   }
 
-  fieldTemplate = FieldTemplate(this.props.date, this.onSaveTitle);
+  fieldTemplate = FieldTemplate(this.props.navigateToCreateMetrics, this.onSaveTitle);
   render() {
     this.updateUiSchema();
     this.updateMetricsSchema();
