@@ -6,15 +6,15 @@ import { History } from "history";
 import { Modal } from 'ui';
 import FormState from './state';
 import Form from './LoginForm';
+import { removeQueryParam } from 'views/Journal/util';
 
 const Container = styled(Modal)`
   padding: 25px;
 `;
 
 @inject("user")
-@inject("history")
 @observer
-export default class LoginModal extends React.Component<{ user?: User, history?: History, isOpen?: boolean; }> {
+export default class LoginModal extends React.Component<{ user?: User, history: History, isOpen?: boolean; }> {
   private formState: FormState = new FormState();
 
   constructor(props: any) {
@@ -22,8 +22,12 @@ export default class LoginModal extends React.Component<{ user?: User, history?:
     this.formState.assign({ user: props.user, history: props.history });
   }
 
+  get params() {
+    return;
+  }
+
   close = () => {
-    this.props.history!.goBack();
+    this.props.history.push({ search: removeQueryParam('login') });
   }
 
   public render() {

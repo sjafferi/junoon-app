@@ -105,8 +105,8 @@ export default class Journal extends React.Component<IProps, IState> {
             />
           )}
           />
-          <Route exact path="/" render={() => <Redirect to={`/${BASE_ROUTE}`} />} />
-          <Route exact path={`/${BASE_ROUTE}`} render={() => <Redirect to={`/${BASE_ROUTE}/${this.startOfWeek}`} />} />
+          <Route exact path="/" render={() => <Redirect to={`/${BASE_ROUTE}${location.search}`} />} />
+          <Route exact path={`/${BASE_ROUTE}`} render={() => <Redirect to={`/${BASE_ROUTE}/${this.startOfWeek}${location.search}`} />} />
           <Route render={() => <Redirect to={`/`} />} />
         </Switch>
         <Route path={`/${BASE_ROUTE}/:start/form/:date`} render={({ match }) => (
@@ -118,7 +118,7 @@ export default class Journal extends React.Component<IProps, IState> {
           />
         )}
         />
-        {!this.props.user!.isLoggedIn && this.params.login && <LoginModal />}
+        {!this.props.user!.isLoggedIn && this.params.login && <LoginModal history={this.props.history!} />}
         <SampleInfo />
       </Container>
     );

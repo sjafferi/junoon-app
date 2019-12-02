@@ -26,7 +26,7 @@ export type IRow = Record<number | string, string | number | moment.Moment>;
 const Container = styled.div`
   box-sizing: border-box;
   height: 90%;
-  width: 100%;
+  width: 96%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -65,7 +65,7 @@ const Tab = styled(Primary)`
 
 const ActionsContainer = styled.div`
   box-sizing: content-box;
-  width: 100%;
+  width: 106%;
   height: 15px;
   padding: 15px;
   bottom: -45px;
@@ -334,7 +334,7 @@ export default class Analyze extends React.Component<IAnalysisProps> {
           </button>
           <BannerText>
             Metrics help you measure what matters.
-      </BannerText>
+          </BannerText>
           <TextLink className="link" onClick={this.props.navigateToMetrics}>Create metrics here.</TextLink>
         </ActionsContainer>
       </>

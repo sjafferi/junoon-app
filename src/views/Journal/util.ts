@@ -1,6 +1,7 @@
 import * as moment from "moment";
 import { EditorState } from 'draft-js';
 import { UiSchema } from "react-jsonschema-form";
+import { parse, stringify } from 'query-string';
 import { getCurrentBlock, addNewBlock, addNewBlockAt } from "editor/model";
 import { IForm, IMetric, ICreateMetric } from "stores";
 
@@ -128,5 +129,10 @@ export const groupBy = (key: string) => (array: any[]) =>
   );
 
 export const addQueryParam = (param: string, value: any) => {
-  return `${location.search + "&" || '?'}${param}=${value}`;
+  return `${location.search != "" ? `${location.search}&` : '?'}${param}=${value}`;
+}
+
+export const removeQueryParam = (param: string) => {
+  const params = parse(location.search) || {};
+  return stringify({ ...params, [param]: undefined });
 }
