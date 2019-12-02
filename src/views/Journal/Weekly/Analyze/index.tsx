@@ -184,6 +184,17 @@ export default class Analyze extends React.Component<IAnalysisProps> {
     }
   }
 
+  componentWillUpdate(nextProps: IAnalysisProps) {
+    this.setDocumentTitle(nextProps);
+  }
+
+  setDocumentTitle = (props?: IAnalysisProps) => {
+    props = props || this.props;
+    const formattedStart = this.props.start.format("MMM D");
+    const formattedEnd = this.props.end.format("MMM D");
+    document.title = `Junoon - Analysis (${formattedStart} - ${formattedEnd})`
+  }
+
   onQueryChange = async (payload: Partial<IQuery>) => {
     const response = await this.journal.updateQuery(payload);
     if (response && !(response as any).error) {

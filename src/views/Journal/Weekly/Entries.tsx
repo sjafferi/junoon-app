@@ -165,11 +165,24 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
       this.state.resizableRowHeight = resizableRowHeight;
     }
 
+    this.setDocumentTitle(props);
     this.clearAutosave = this.startAutosave();
   }
 
   componentWillUnmount() {
     this.clearAutosave();
+  }
+
+  componentWillUpdate(nextProps: IWeeklyProps) {
+    this.setDocumentTitle(nextProps);
+  }
+
+  setDocumentTitle = (props?: IWeeklyProps) => {
+    props = props || this.props;
+    const start = this.start;
+    const formattedStart = start.format("MMM D");
+    const formattedEnd = start.add("1", "w").format("MMM D");
+    document.title = `Junoon - Digital Agenda (${formattedStart} - ${formattedEnd})`
   }
 
   setHash = () => {
