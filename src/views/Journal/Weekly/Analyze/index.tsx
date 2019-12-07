@@ -5,6 +5,7 @@ import { sortBy, entries } from "lodash";
 import { toJS } from "mobx";
 import { inject, observer } from "mobx-react";
 import { Colors, Primary, Header4, Spinner, Text, TextLink, SmallScrollbar } from "ui";
+import * as FormEmptyState from 'assets/img/form-empty-state.png';
 import { Journal, IMetricValue, IQuery } from "stores";
 import { MetricsEmptyState } from "icons";
 import { convertToUTC, groupBy } from "../../util";
@@ -140,6 +141,9 @@ const EmptyStateContainer = styled.div`
   svg {
     max-height: 330px;
   }
+  img { 
+    max-width: 750px;
+  }
   h4 {
     margin: 15px;
     font-size: 1.15em;
@@ -152,9 +156,9 @@ const EmptyStateContainer = styled.div`
   }
 `;
 
-const EmptyState: React.SFC<{ title: string, subtitle: string }> = ({ title, subtitle }) => (
+const EmptyState: React.SFC<{ title: string, subtitle: string }> = ({ title, subtitle, children }) => (
   <EmptyStateContainer>
-    <MetricsEmptyState />
+    {children}
     <Header4>{title}</Header4>
     <Text>{subtitle}</Text>
   </EmptyStateContainer>
@@ -279,7 +283,9 @@ export default class Analyze extends React.Component<IAnalysisProps> {
       return <EmptyState
         title="You haven't created any metrics yet"
         subtitle="Create a set of metrics below to get started."
-      />
+      >
+        <MetricsEmptyState />
+      </EmptyState>
     }
 
     const rows = this.rows;
@@ -290,14 +296,18 @@ export default class Analyze extends React.Component<IAnalysisProps> {
       return <EmptyState
         title="No forms filled"
         subtitle="Fill out a form in the agenda screen to analyze this week's metrics."
-      />
+      >
+        <img src={FormEmptyState} alt="form empty state" />
+      </EmptyState>
     }
 
     if (noNumericMetricsExist && (activeTab === "summary" || activeTab === "graphs")) {
       return <EmptyState
         title="You have only added text metrics"
         subtitle="Only numeric or boolean metrics are available for summary or graph insights."
-      />
+      >
+        <MetricsEmptyState />
+      </EmptyState>
     }
 
     this.showingEmptyState = false;
