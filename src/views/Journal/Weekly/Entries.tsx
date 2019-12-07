@@ -28,7 +28,7 @@ interface IWeeklyState {
 
 interface IWeeklyProps {
   state: State;
-  start: string;
+  start: moment.Moment;
   viewport?: Viewport;
   history?: History;
   router?: RouterStore;
@@ -224,7 +224,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   get start() {
-    return moment(this.props.start, "MMMD").startOf('isoWeek').startOf('day');
+    return this.props.start.clone().startOf('isoWeek').startOf('day');
   }
 
   get week() {
@@ -340,9 +340,8 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     const width = this.viewport!.isMobile ? this.columnWidth * 3.05 : this.columnWidth / (numColumns / 4);
     return this.keys.map((key, index) => ({ key, index })).filter((key, index) => index >= start && index < end).map(({ key, index }) => {
       const actions = this.getActionsForEntry(index);
-      const day = this.start.add(index, 'd');
       return (
-        <Column id={this.viewport!.isMobile ? day.format("MMMD") : undefined} className={`editor-block`} key={key} width={width}>
+        <Column className={`editor-block`} key={key} width={width}>
           {actions.length ? <ActionsContainer> {actions.map((...props) => <Action key={props[1]} {...(props[0])} />)} </ActionsContainer> : null}
           <Editor
             id={key}

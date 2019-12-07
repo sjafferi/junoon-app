@@ -68,7 +68,7 @@ export default class Journal extends React.Component<IProps, IState> {
   }
 
   getStartOfWeek = (date: string) => {
-    return moment(date, "MMMD").startOf('isoWeek').startOf('day');
+    return moment(date, "MMMD-YYYY").startOf('isoWeek').startOf('day');
   }
 
   @action

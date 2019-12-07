@@ -109,7 +109,11 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   get start() {
-    return this.props.start.format("MMMD");
+    const { start } = this.props;
+    if (moment().year() !== start.year()) {
+      return start.format("MMMD-YYYY")
+    }
+    return start.format("MMMD");
   }
 
   get isReady() {
@@ -205,7 +209,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
           <Route path={`/${BASE_ROUTE}/:start`} render={() => (
             <WeeklyEntries
               history={this.props.history}
-              start={this.start}
+              start={this.props.start}
               state={this.props.state}
             />
           )} />

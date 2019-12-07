@@ -58,12 +58,20 @@ interface IHeaderProps {
 export default class Header extends React.Component<IHeaderProps, {}> {
   get prevWeek() {
     const clone = this.props.start.clone().subtract(1, 'w');
-    return clone.format("MMMD");
+    let suffix = '';
+    if (moment().year() !== clone.year()) {
+      suffix = '-YYYY';
+    }
+    return clone.format(`MMMD${suffix}`);
   }
 
   get nextWeek() {
     const clone = this.props.start.clone().add(1, 'w');
-    return clone.format("MMMD");
+    let suffix = '';
+    if (moment().year() !== clone.year()) {
+      suffix = '-YYYY';
+    }
+    return clone.format(`MMMD${suffix}`);
   }
 
   get week() {
