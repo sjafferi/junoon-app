@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Colors, Header4, Primary, Spacer, Text } from 'ui';
 import { observer } from 'mobx-react'
 import FormState from './state';
+import { getParameterByName } from "../../util";
 
 const Title = styled(Header4)`
   margin: 0 !important;
@@ -68,6 +69,13 @@ interface ILoginProps {
 
 @observer
 export default class Login extends React.Component<ILoginProps> {
+  componentDidMount() {
+    const urlEmail = getParameterByName("email");
+    if (urlEmail) {
+      this.form.assign({ email: urlEmail, inSignup: true })
+    }
+  }
+
   get form() { return this.props.state; }
 
   toggleSignup = (e: React.MouseEvent) => {
