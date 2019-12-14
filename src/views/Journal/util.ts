@@ -128,11 +128,12 @@ export const groupBy = (key: string) => (array: any[]) =>
     {}
   );
 
-export const addQueryParam = (param: string, value: any) => {
-  return `${location.search != "" ? `${location.search}&` : '?'}${param}=${value}`;
+export const addQueryParam = (params: Record<string, any>) => {
+  return `${location.search != "" ? `${location.search}&` : '?'}${stringify(params)}`;
 }
 
-export const removeQueryParam = (param: string) => {
+export const removeQueryParam = (...args: string[]) => {
   const params = parse(location.search) || {};
-  return stringify({ ...params, [param]: undefined });
+  const obj = args.reduce((acc, arg) => ({ ...acc, [arg]: undefined }), params);
+  return stringify(obj);
 }

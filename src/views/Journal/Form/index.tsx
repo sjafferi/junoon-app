@@ -11,7 +11,7 @@ import { IErrorResponse } from 'api';
 import { Journal, User, IForm, IMetric, ICreateMetric, RouterStore } from 'stores';
 import { Colors, Header2, Modal, EditableInput, SmallScrollbar } from 'ui';
 import { FormStyles } from "./FormStyles";
-import { addQueryParam, transformMetricToSchema, transformMetricToUISchema } from "../util";
+import { transformMetricToSchema, transformMetricToUISchema } from "../util";
 import { BASE_ROUTE } from "../index";
 import State from "../state";
 

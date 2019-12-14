@@ -71,8 +71,9 @@ interface ILoginProps {
 export default class Login extends React.Component<ILoginProps> {
   componentDidMount() {
     const urlEmail = getParameterByName("email");
-    if (urlEmail) {
-      this.form.assign({ email: urlEmail, inSignup: true })
+    const inSignup = getParameterByName("signup");
+    if (urlEmail || inSignup) {
+      this.form.assign({ email: urlEmail || '', inSignup: true })
     }
   }
 

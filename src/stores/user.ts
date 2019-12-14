@@ -3,6 +3,7 @@ import { assign } from 'lodash';
 import { RootStore } from './index';
 import { login, signup, signout, fetchUser } from 'api'
 import { getParameterByName } from "../util";
+import { removeQueryParam } from "views/Journal/util";
 
 export const PUBLIC_ACCT_PARAM_NAME = 'sample';
 const DUMMY_ACCT_ID = '0638b3b2-6821-425f-b6c0-99dca352ced5';
@@ -110,8 +111,7 @@ export class User {
 
     if (result) this.setUser(result);
 
-    window.location.replace('/');
-    window.location.reload();
+    location.search = removeQueryParam('sample');
 
     return { result, error };
   }

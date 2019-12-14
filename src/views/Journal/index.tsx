@@ -60,7 +60,7 @@ export default class Journal extends React.Component<IProps, IState> {
   }
 
   navigateToCreateMetrics = () => {
-    this.props.history!.push({ search: addQueryParam('viewMetrics', true) });
+    this.props.history!.push({ search: addQueryParam({ 'viewMetrics': true }) });
   }
 
   getEntry = (id: number) => {
@@ -118,7 +118,7 @@ export default class Journal extends React.Component<IProps, IState> {
           />
         )}
         />
-        {!this.props.user!.isLoggedIn && this.params.login && <LoginModal history={this.props.history!} />}
+        {(this.params.login || this.params.signup) && <LoginModal history={this.props.history!} />}
         <SampleInfo />
       </Container>
     );

@@ -62,8 +62,8 @@ const Container = styled.div`
 
 const HeaderActions = styled.div`
   display: flex;
-  button + button {
-    border-left: none !important;
+  > * {
+    margin: 0 5px;
   }
 `
 
@@ -135,7 +135,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   }
 
   navigateToCreateMetrics = () => {
-    this.props.history!.push({ search: addQueryParam('viewMetrics', true) });
+    this.props.history!.push({ search: addQueryParam({ 'viewMetrics': true }) });
   }
 
   navigateToAnalysis = () => {
@@ -172,11 +172,14 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
     const isPreviewMode = this.props.user!.isViewingPublicAcct;
     return (
       <HeaderActions>
+        {isPreviewMode || !loggedIn && <Primary onClick={() => this.props.history!.push({ search: addQueryParam({ 'signup': true }) })}>Sign up</Primary>}
         {!loggedIn && (
-          <Primary onClick={() => this.props.history!.push({ search: addQueryParam('login', true) })}>Login</Primary>
+          <Primary onClick={() => this.props.history!.push({ search: addQueryParam({ 'login': true }) })}>Login</Primary>
         )}
         {loggedIn && (
-          <Primary onClick={() => this.props.user!.signout()}>{isPreviewMode ? "Exit Preview" : "Sign out"}</Primary>
+          <>
+            <Primary onClick={() => this.props.user!.signout()}>{isPreviewMode ? "Exit Preview" : "Sign out"}</Primary>
+          </>
         )}
       </HeaderActions>
     );

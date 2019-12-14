@@ -27,7 +27,7 @@ export default class LoginModal extends React.Component<{ user?: User, history: 
   }
 
   close = () => {
-    this.props.history.push({ search: removeQueryParam('login') });
+    this.props.history.push({ search: removeQueryParam('login', 'signup') });
   }
 
   public render() {
