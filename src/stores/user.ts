@@ -1,5 +1,5 @@
 import { action, computed, observable } from 'mobx';
-import { assign } from 'lodash';
+import { assign, isEmpty } from 'lodash';
 import { RootStore } from './index';
 import { login, signup, signout, fetchUser } from 'api'
 import { getParameterByName } from "../util";
@@ -26,7 +26,7 @@ export class User {
       this.setUser({ id: DUMMY_ACCT_ID, isPublic: true });
       this.assign({ isViewingPublicAcct: true });
       PUBLIC_ACCT_ID = DUMMY_ACCT_ID;
-    } if (document.cookie) {
+    } else if (document.cookie) {
       this.validateUser();
     } else {
       this.setUser();
@@ -41,8 +41,11 @@ export class User {
     } else {
       setTimeout(() => this.setUser(user), 200);
     }
-    if (!this.isViewingPublicAcct && user && user.email) {
+    if (!this.isViewingPublicAcct && user?.email) {
       PUBLIC_ACCT_ID = null;
+    }
+    if (user?.email && !isEmpty(getParameterByName(PUBLIC_ACCT_PARAM_NAME))) {
+      location.search = removeQueryParam('sample', 'signup', 'login');
     }
   }
 

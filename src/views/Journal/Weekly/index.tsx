@@ -170,9 +170,10 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   renderHeaderRight = () => {
     const loggedIn = this.journal.isLoggedIn;
     const isPreviewMode = this.props.user!.isViewingPublicAcct;
+    console.log("am i in preview mod", isPreviewMode)
     return (
       <HeaderActions>
-        {isPreviewMode || !loggedIn && <Primary onClick={() => this.props.history!.push({ search: addQueryParam({ 'signup': true }) })}>Sign up</Primary>}
+        {isPreviewMode || !loggedIn ? <Primary onClick={() => this.props.history!.push({ search: addQueryParam({ 'signup': true }) })}>Sign up</Primary> : null}
         {!loggedIn && (
           <Primary onClick={() => this.props.history!.push({ search: addQueryParam({ 'login': true }) })}>Login</Primary>
         )}
