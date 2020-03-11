@@ -104,8 +104,8 @@ export function transformMetricToUISchema(metrics: { type: string, value: ICreat
 export function convertToUTC(date: moment.Moment) { // ensure that forwarded dates are in UTC already!
   const cloned = date.clone();
   let offset = moment().utcOffset();
-  if (cloned.isDST() && !cloned.isUTC()) {
-    offset += 60;
+  if (!cloned.isDST() && !cloned.isUTC()) {
+    offset -= 60;
   }
   return cloned.add(offset, 'm').utc();
 }
@@ -113,8 +113,8 @@ export function convertToUTC(date: moment.Moment) { // ensure that forwarded dat
 export function convertToLocal(date: moment.Moment) {
   const cloned = date.clone();
   let offset = moment().utcOffset();
-  if (cloned.isDST() && cloned.isUTC()) {
-    offset += 60;
+  if (!cloned.isDST() && cloned.isUTC()) {
+    offset -= 60;
   }
   return cloned.add(-offset, 'm').local();
 }

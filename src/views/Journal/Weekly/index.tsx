@@ -170,7 +170,6 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
   renderHeaderRight = () => {
     const loggedIn = this.journal.isLoggedIn;
     const isPreviewMode = this.props.user!.isViewingPublicAcct;
-    console.log("am i in preview mod", isPreviewMode)
     return (
       <HeaderActions>
         {isPreviewMode || !loggedIn ? <Primary onClick={() => this.props.history!.push({ search: addQueryParam({ 'signup': true }) })}>Sign up</Primary> : null}
@@ -204,7 +203,7 @@ export default class Weekly extends React.Component<IWeeklyProps, IWeeklyState> 
         {ready && <Switch>
           {this.journal.isLoggedIn && <Route path={`/${BASE_ROUTE}/:start/analyze`} render={() => (
             <WeeklyAnalysis
-              start={this.props.start}
+              start={this.props.start.clone().startOf('isoWeek')}
               state={this.props.state}
               end={this.props.start.clone().endOf('isoWeek')}
               navigateToMetrics={this.navigateToCreateMetrics}
