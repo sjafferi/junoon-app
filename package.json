@@ -63,7 +63,7 @@
     "chart.js": "^2.8.0",
     "draft-js": "^0.10.5",
     "draftjs-conductor": "^1.0.0",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "flexboxgrid": "^6.3.1",
     "immutable": "^3.7.6",
     "joi": "^14.3.1",
